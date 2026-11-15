@@ -23,10 +23,12 @@
     }
     #msg small { display: block; margin-top: 8px; color: #777; font-size: 14px; }
     #status {
-      position: absolute; right: 8px; bottom: 8px; display: none; padding: 4px 10px; border-radius: 12px;
-      background: rgba(0, 0, 0, 0.7); color: #fc6; font: 13px/1.4 -apple-system, "Segoe UI", Roboto, sans-serif;
-      pointer-events: none;
+      position: absolute; right: 12px; bottom: 10px; display: none;
+      color: #555; font: 12px/1.4 -apple-system, "Segoe UI", Roboto, sans-serif; pointer-events: none;
     }
+    /* Offline: a black screen and the corner text only, so a device left on does not burn in a frozen
+       dashboard. Visibility (not display) keeps the frame loaded for when the connection comes back. */
+    body.offline #dash, body.offline #msg { visibility: hidden; }
   </style>
 </head>
 <body>
@@ -39,6 +41,7 @@
       var NOTICE_DELAY_MS = 3000; // brief drops (SimHub switching games) should not flash a notice
       var POLL_MS = 5000;
       var FIT_MS = 2000; // re-fit periodically too: a missed resize event must not leave the frame mis-sized
+      var DRIFT_MS = 60000; // nudge the offline text now and then so it does not burn in either
 
       var frame = document.getElementById('dash');
       var msg = document.getElementById('msg');
@@ -48,6 +51,7 @@
       var source = null;
       var pollTimer = null;
       var noticeTimer = null;
+      var driftTimer = null;
       var iconSet = false;
 
       document.title = 'SimHub · ' + device;
@@ -74,11 +78,21 @@
         frame.src = 'about:blank';
       }
 
+      function drift() {
+        status.style.right = (8 + Math.floor(Math.random() * 17)) + 'px';
+        status.style.bottom = (6 + Math.floor(Math.random() * 13)) + 'px';
+      }
+
       function connected() {
         if (noticeTimer) {
           clearTimeout(noticeTimer);
           noticeTimer = null;
         }
+        if (driftTimer) {
+          clearInterval(driftTimer);
+          driftTimer = null;
+        }
+        document.body.className = '';
         status.style.display = 'none';
       }
 
@@ -88,6 +102,11 @@
             noticeTimer = null;
             status.textContent = text;
             status.style.display = 'block';
+            document.body.className = 'offline';
+            drift();
+            if (!driftTimer) {
+              driftTimer = setInterval(drift, DRIFT_MS);
+            }
           }, NOTICE_DELAY_MS);
         }
       }
@@ -183,8 +202,8 @@
             source = null;
             startPolling();
           } else {
-            // The browser retries by itself; keep the last dashboard on screen meanwhile.
-            disconnected('Reconnecting to SimHub…');
+            // The browser retries by itself; brief drops keep the dashboard, longer ones go black.
+            disconnected('Reconnecting…');
           }
         };
       }

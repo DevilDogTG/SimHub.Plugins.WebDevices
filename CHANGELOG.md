@@ -12,7 +12,8 @@ All notable changes to this project are documented here. The format follows
   paused) and driving, with defaults for unmapped games and a fallback chain for empty settings.
 - Switch delays, so a game restart does not flash every device (3 s before "no game running" by default).
 - Live push to devices over Server-Sent Events, with polling fallback, automatic reconnect and a
-  "Reconnecting…" notice that keeps the last dashboard on screen.
+  "Reconnecting…" notice. Brief drops keep the dashboard on screen; after 3 s the screen goes black
+  with only a small, dim, slowly drifting notice in the corner, so devices left on do not burn in.
 - Device connections survive SimHub re-creating plugins on every game switch.
 - "Web Devices" settings tab in SimHub: live status above a **Devices** tab (devices with connection
   status, current dashboard and copyable URLs, per-game mappings with SimHub's game list and "Add current
