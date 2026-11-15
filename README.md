@@ -68,7 +68,7 @@ keep the screen awake by themselves.
 | SimHub's own dashboards stop working after installing | The **Device port** must not be SimHub's web or HTTPS port (8888 / 8889 by default, set in SimHub's web server settings). The plugin refuses those ports; older settings may still name one: change **Device port**, save, and restart SimHub. |
 | "… is not configured in SimHub" | The name in the URL must match a saved device. The page picks the device up by itself once it is added and saved. |
 | Page loads but stays black | SimHub's own web server must be reachable: try `http://<simhub-pc>:8888/` on the device; check **SimHub web port**. |
-| "Reconnecting to SimHub…" | The device lost the connection (Wi-Fi drop, SimHub restart). It recovers by itself; the last dashboard stays on screen meanwhile. |
+| Black screen with "Reconnecting…" or "Waiting for SimHub…" in the corner | The device lost the connection (Wi-Fi drop, SimHub closed or restarting). It recovers by itself. The screen goes black after 3 s offline so devices left on do not burn in. |
 | Game not detected | SimHub must switch to the game (its current game shows in **Status**). Process detection for custom games does not work for programs running as administrator. |
 | Menus show the driving dashboard | Some games never report "in menus". ETS2/ATS report their Esc menu as paused, which counts as in menus; sitting in the truck before driving counts as driving. |
 
