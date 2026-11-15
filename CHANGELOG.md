@@ -6,6 +6,10 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-15
+
+First public release (1.0.x were local test builds).
+
 ### Added
 - Per-device URLs `http://<simhub-pc>:8890/<device-name>/` that show SimHub web dashboards full screen.
 - Automatic dashboard switching per game and per state: no game running, in menus (loading, menus,
@@ -26,3 +30,6 @@ All notable changes to this project are documented here. The format follows
 - `[WebDevices]` log lines for switches, connections and SimHub's raw game flags.
 - Developer tools: dev install script, release package script and a dev host for testing the device page
   without a game.
+
+[Unreleased]: https://github.com/DevilDogTG/SimHub.WebDevices/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/DevilDogTG/SimHub.WebDevices/releases/tag/v1.1.0
