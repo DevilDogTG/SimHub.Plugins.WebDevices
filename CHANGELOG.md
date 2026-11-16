@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+- The plugin class is now `DDWebDevicesPlugin`, named like the other DevDogs plugins. SimHub sees it as a
+  new plugin: after updating, enable **DevDogs Web Devices** again when asked and put **Web Devices** back
+  in the left menu. Devices and settings are carried over from 1.1.x on first start; the old settings file
+  is left in place.
+
 ## [1.1.0] - 2026-11-15
 
 First public release (1.0.x were local test builds).
