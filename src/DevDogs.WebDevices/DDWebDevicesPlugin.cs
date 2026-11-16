@@ -19,7 +19,7 @@ namespace DevDogs.WebDevices;
 /// </summary>
 [PluginName("DevDogs Web Devices")]
 [PluginDescription("Switches SimHub web dashboards on each browser device by game and game state.")]
-[PluginAuthor("DevDogs")]
+[PluginAuthor("DevilDogTG")]
 public class DDWebDevicesPlugin : IPlugin, IDataPlugin, IWPFSettingsV2
 {
     /// <summary>
