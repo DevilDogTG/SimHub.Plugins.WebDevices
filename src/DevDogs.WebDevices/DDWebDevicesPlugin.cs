@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Windows.Controls;
 using System.Windows.Media;
 using DevDogs.WebDevices.Core.Config;
@@ -14,18 +15,23 @@ namespace DevDogs.WebDevices;
 
 /// <summary>
 /// SimHub entry point. The class name is the prefix of every property, event and action this plugin
-/// registers (<c>WebDevicesPlugin.*</c>) and must not change (docs/adr/ADR-0005).
+/// registers (<c>DDWebDevicesPlugin.*</c>) and of its settings file name (docs/adr/ADR-0008).
 /// </summary>
 [PluginName("DevDogs Web Devices")]
 [PluginDescription("Switches SimHub web dashboards on each browser device by game and game state.")]
 [PluginAuthor("DevDogs")]
-public class WebDevicesPlugin : IPlugin, IDataPlugin, IWPFSettingsV2
+public class DDWebDevicesPlugin : IPlugin, IDataPlugin, IWPFSettingsV2
 {
     /// <summary>
     /// The key SimHub stores this plugin's settings under; the file is
-    /// <c>PluginsData\Common\WebDevicesPlugin.WebDevicesSettings.json</c> (SimHub prefixes the class name).
+    /// <c>PluginsData\Common\DDWebDevicesPlugin.WebDevicesSettings.json</c> (SimHub prefixes the class name).
     /// </summary>
     private const string SettingsKey = "WebDevicesSettings";
+
+    /// <summary>
+    /// The class name up to 1.1.x (docs/adr/ADR-0005); SimHub kept the settings file under it.
+    /// </summary>
+    private const string PreviousClassName = "WebDevicesPlugin";
 
     private const string LogPrefix = "[WebDevices] ";
 
@@ -72,6 +78,7 @@ public class WebDevicesPlugin : IPlugin, IDataPlugin, IWPFSettingsV2
     /// <param name="pluginManager">The SimHub plugin manager.</param>
     public void Init(PluginManager pluginManager)
     {
+        CarryOverPreviousSettings(pluginManager);
         Settings = this.ReadCommonSettings(SettingsKey, () => new RouterSettings());
         foreach (var problem in RouterSettingsValidator.Validate(Settings))
         {
@@ -94,6 +101,32 @@ public class WebDevicesPlugin : IPlugin, IDataPlugin, IWPFSettingsV2
 
         SimHub.Logging.Current.Info(
             $"{LogPrefix}Loaded with {Settings.Devices.Count} device(s){(reused ? "; server kept running" : "")}.");
+    }
+
+    /// <summary>
+    /// Copies the settings file kept under the previous class name, so devices set up before the rename survive
+    /// it (docs/adr/ADR-0008). Never throws: if the copy fails the previous file stays on disk and the failure
+    /// is logged.
+    /// </summary>
+    /// <param name="pluginManager">The SimHub plugin manager.</param>
+    private void CarryOverPreviousSettings(PluginManager pluginManager)
+    {
+        // Named exactly as SimHub's ReadCommonSettings names them ("<class>.<key>.json" under PluginsData\Common,
+        // relative to SimHub's working folder), so both paths resolve where SimHub reads and writes.
+        var previousName = $"{PreviousClassName}.{SettingsKey}.json";
+        var previous = pluginManager.GetCommonStoragePath(previousName);
+        var current = pluginManager.GetCommonStoragePath($"{GetType().Name}.{SettingsKey}.json");
+        try
+        {
+            if (SettingsCarryOver.CopyIfMissing(previous, current))
+            {
+                SimHub.Logging.Current.Info($"{LogPrefix}Settings carried over from {previousName}.");
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            SimHub.Logging.Current.Warn($"{LogPrefix}Could not carry settings over from {previousName}: {ex.Message}");
+        }
     }
 
     /// <summary>

@@ -31,6 +31,9 @@ automatically, by game and by what you are doing in it. Each device opens one fi
    (usually `C:\Program Files (x86)\SimHub`).
 4. Start SimHub and enable **DevDogs Web Devices** when asked.
 
+Updating from 1.1.x: SimHub asks to enable the plugin again, because its class name changed in 1.2.0, and
+**Web Devices** has to be put back in the left menu. Your devices and settings are carried over.
+
 ### Usage
 1. Open **Web Devices** in SimHub's left menu.
 2. On the **Devices** tab, click **Add device** and give it a name such as `ipad-left` (lowercase letters, digits, `-` and `_`).
