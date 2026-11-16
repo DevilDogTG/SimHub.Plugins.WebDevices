@@ -1,7 +1,7 @@
 # ADR-0005: Name the plugin class `WebDevicesPlugin`
 
 **Date:** 2026-10-17
-**Status:** accepted
+**Status:** superseded by ADR-0008
 **Deciders:** DevilDogTG (project owner)
 
 ## Context
