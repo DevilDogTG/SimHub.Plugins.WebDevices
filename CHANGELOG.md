@@ -11,6 +11,7 @@ All notable changes to this project are documented here. The format follows
   new plugin: after updating, enable **DevDogs Web Devices** again when asked and put **Web Devices** back
   in the left menu. Devices and settings are carried over from 1.1.x on first start; the old settings file
   is left in place.
+- The plugin's author is now DevilDogTG; the company stays DevDogs.
 
 ## [1.1.0] - 2026-11-15
 
