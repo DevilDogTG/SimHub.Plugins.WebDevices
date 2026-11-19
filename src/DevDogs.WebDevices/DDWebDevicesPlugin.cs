@@ -6,6 +6,7 @@ using DevDogs.WebDevices.Core.Config;
 using DevDogs.WebDevices.Core.Devices;
 using DevDogs.WebDevices.Core.Editing;
 using DevDogs.WebDevices.Core.Hosting;
+using DevDogs.WebDevices.Core.Routing;
 using DevDogs.WebDevices.Core.State;
 using DevDogs.WebDevices.UI;
 using GameReaderCommon;
@@ -35,6 +36,9 @@ public class DDWebDevicesPlugin : IPlugin, IDataPlugin, IWPFSettingsV2
 
     private const string LogPrefix = "[WebDevices] ";
 
+    /// <summary>How often Navigation Dash's properties are read; telemetry frames come far more often.</summary>
+    private const int NavigationReadIntervalMs = 500;
+
     /// <summary>
     /// The host shared by successive plugin instances. SimHub ends this plugin and creates a new instance on
     /// every game switch; the host, and every device connection, survives that (docs/adr/ADR-0007). The grace
@@ -46,6 +50,9 @@ public class DDWebDevicesPlugin : IPlugin, IDataPlugin, IWPFSettingsV2
 
     // The raw flags last logged, so they are logged only when they change rather than every frame.
     private (string? Game, bool Process, bool Running, bool Menu, bool Paused, bool Replay)? _lastFlags;
+
+    // Environment.TickCount of the last read of Navigation Dash's properties.
+    private int? _lastNavigationRead;
 
     /// <summary>
     /// Gets or sets the SimHub plugin manager; assigned by SimHub before <see cref="Init"/> is called.
@@ -144,6 +151,44 @@ public class DDWebDevicesPlugin : IPlugin, IDataPlugin, IWPFSettingsV2
             var state = _host.Router.State;
             SimHub.Logging.Current.Info($"{LogPrefix}State: {state.State}{(state.GameName is null ? "" : " (" + state.GameName + ")")}");
         }
+
+        ObserveNavigationDash(pluginManager);
+    }
+
+    /// <summary>
+    /// Reads DevDogs Navigation Dash's SimHub properties (docs/adr/ADR-0009).
+    /// </summary>
+    /// <param name="pluginManager">The SimHub plugin manager.</param>
+    /// <returns>The status; not installed when its properties do not exist.</returns>
+    private static NavigationDashStatus ReadNavigationDash(PluginManager pluginManager) =>
+        NavigationDashStatus.From(
+            pluginManager.GetPropertyValue(NavigationDash.UrlProperty),
+            pluginManager.GetPropertyValue(NavigationDash.ReadyProperty),
+            pluginManager.GetPropertyValue(NavigationDash.StatusProperty));
+
+    /// <summary>
+    /// Hands Navigation Dash's status to the router every <see cref="NavigationReadIntervalMs"/>, logging changes.
+    /// </summary>
+    /// <param name="pluginManager">The SimHub plugin manager.</param>
+    private void ObserveNavigationDash(PluginManager pluginManager)
+    {
+        var now = Environment.TickCount;
+        if (_lastNavigationRead is { } last && unchecked(now - last) < NavigationReadIntervalMs)
+        {
+            return;
+        }
+
+        _lastNavigationRead = now;
+        var status = ReadNavigationDash(pluginManager);
+        if (_host.Router.UpdateNavigation(status))
+        {
+            SimHub.Logging.Current.Info(LogPrefix + "Navigation Dash: " + (status switch
+            {
+                { Installed: false } => "not installed",
+                { Ready: true } => "ready on port " + status.Port,
+                _ => "not ready" + (status.Reason is null ? "" : " (" + status.Reason + ")"),
+            }));
+        }
     }
 
     /// <summary>
@@ -190,7 +235,8 @@ public class DDWebDevicesPlugin : IPlugin, IDataPlugin, IWPFSettingsV2
                 var status = host.Configure(settings, simHubPorts);
                 SimHub.Logging.Current.Info($"{LogPrefix}Settings saved: {settings.Devices.Count} device(s). {status.Message}");
             },
-            simHubPorts);
+            simHubPorts,
+            ReadNavigationDash(pluginManager).Installed);
 
         return new SettingsControl(
             editor,

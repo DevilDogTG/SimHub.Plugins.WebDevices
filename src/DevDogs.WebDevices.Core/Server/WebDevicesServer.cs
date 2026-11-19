@@ -435,8 +435,7 @@ public sealed class WebDevicesServer : IDisposable
             _ = WatchForCloseAsync(stream, closed);
             await WriteTextAsync(stream, Head + "retry: 2000\n\n").ConfigureAwait(false);
 
-            string? sentPath = null;
-            var first = true;
+            DeviceTarget? sent = null;
             while (true)
             {
                 var target = _router.GetTarget(device);
@@ -446,12 +445,12 @@ public sealed class WebDevicesServer : IDisposable
                     return;
                 }
 
-                if (first || target.Path != sentPath)
+                // The whole target, not just the path: a notice or a port can change while the path stays the same.
+                if (target != sent)
                 {
                     var payload = DevicePayload.ToJson(device, _router.State, target, _router.SimHubWebPort);
                     await WriteTextAsync(stream, $"event: dash\ndata: {payload}\n\n").ConfigureAwait(false);
-                    sentPath = target.Path;
-                    first = false;
+                    sent = target;
                 }
 
                 if (await changed.WaitAsync(HeartbeatInterval, closed.Token).ConfigureAwait(false))

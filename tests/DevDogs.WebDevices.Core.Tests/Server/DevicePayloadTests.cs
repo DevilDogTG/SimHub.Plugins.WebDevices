@@ -26,7 +26,10 @@ public class DevicePayloadTests
               "game": "ETS2",
               "dashboard": "Truck",
               "path": "/Dash?v=1#Truck",
-              "simHubPort": 8888
+              "port": 8888,
+              "simHubPort": 8888,
+              "notice": null,
+              "noticeDetail": null
             }
             """));
     }
@@ -41,5 +44,38 @@ public class DevicePayloadTests
         payload["game"]!.Type.Should().Be(JTokenType.Null);
         payload["dashboard"]!.Type.Should().Be(JTokenType.Null);
         payload["path"]!.Type.Should().Be(JTokenType.Null);
+        payload["port"]!.Type.Should().Be(JTokenType.Null);
+        payload["notice"]!.Type.Should().Be(JTokenType.Null);
+    }
+
+    [Fact]
+    public void The_frame_port_is_the_targets_own()
+    {
+        var json = DevicePayload.ToJson(
+            "tablet",
+            new RouterState(GameState.Driving, "ETS2"),
+            new DeviceTarget(NavigationDash.Code, "/", 8893),
+            simHubWebPort: 8888);
+
+        var payload = JObject.Parse(json);
+        payload["path"]!.Value<string>().Should().Be("/");
+        payload["port"]!.Value<int>().Should().Be(8893);
+        payload["simHubPort"]!.Value<int>().Should().Be(8888, "the home-screen icon still comes from SimHub");
+    }
+
+    [Fact]
+    public void Carries_a_notice_instead_of_a_page()
+    {
+        var json = DevicePayload.ToJson(
+            "tablet",
+            new RouterState(GameState.Driving, "ETS2"),
+            new DeviceTarget(NavigationDash.Code, null, null, "DevDogs Navigation Dash is not ready.", "Waiting for map data"),
+            simHubWebPort: 8888);
+
+        var payload = JObject.Parse(json);
+        payload["path"]!.Type.Should().Be(JTokenType.Null);
+        payload["port"]!.Type.Should().Be(JTokenType.Null);
+        payload["notice"]!.Value<string>().Should().Be("DevDogs Navigation Dash is not ready.");
+        payload["noticeDetail"]!.Value<string>().Should().Be("Waiting for map data");
     }
 }

@@ -15,6 +15,7 @@ public sealed class DeviceRouter
     private readonly SwitchDebouncer _debouncer;
     private RouterSettings _settings;
     private Dictionary<string, Entry> _entries = new(StringComparer.OrdinalIgnoreCase);
+    private NavigationDashStatus _navigation = NavigationDashStatus.NotInstalled;
     private long _cacheBuster;
 
     /// <summary>
@@ -59,6 +60,18 @@ public sealed class DeviceRouter
             lock (_gate)
             {
                 return _settings.SimHubWebPort;
+            }
+        }
+    }
+
+    /// <summary>Gets the DevDogs Navigation Dash status targets are built with.</summary>
+    public NavigationDashStatus Navigation
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _navigation;
             }
         }
     }
@@ -116,6 +129,29 @@ public sealed class DeviceRouter
     }
 
     /// <summary>
+    /// Records whether DevDogs Navigation Dash can be shown and recomputes the targets that use it.
+    /// </summary>
+    /// <param name="status">The status read from Navigation Dash's SimHub properties.</param>
+    /// <returns><see langword="true"/> when the status differs from the one in use.</returns>
+    public bool UpdateNavigation(NavigationDashStatus status)
+    {
+        IReadOnlyCollection<string> changed;
+        lock (_gate)
+        {
+            if (_navigation == status)
+            {
+                return false;
+            }
+
+            _navigation = status;
+            changed = Rebuild();
+        }
+
+        Raise(changed);
+        return true;
+    }
+
+    /// <summary>
     /// Returns what <paramref name="deviceName"/> should show.
     /// </summary>
     /// <param name="deviceName">The device name from the URL, matched ignoring case.</param>
@@ -150,17 +186,15 @@ public sealed class DeviceRouter
                 continue; // duplicate names are rejected by validation; the first one wins if one slips through
             }
 
-            var dashboard = DashboardResolver.Resolve(device, state);
-            if (_entries.TryGetValue(device.Name, out var previous)
-                && previous.Dashboard == dashboard
-                && previous.HideControls == device.HideControls)
+            var key = KeyFor(DashboardResolver.Resolve(device, state), device.HideControls);
+            if (_entries.TryGetValue(device.Name, out var previous) && previous.Key == key)
             {
+                // Unchanged, so the frame keeps its page: the same dashboard in two states does not reload.
                 entries[device.Name] = previous;
                 continue;
             }
 
-            var path = dashboard is null ? null : DashUrl.Build(dashboard, device.HideControls, ++_cacheBuster);
-            entries[device.Name] = new Entry(dashboard, device.HideControls, new DeviceTarget(dashboard, path));
+            entries[device.Name] = new Entry(key, TargetFor(key));
             changed.Add(device.Name);
         }
 
@@ -176,6 +210,50 @@ public sealed class DeviceRouter
         return changed;
     }
 
+    /// <summary>
+    /// Returns everything a device's frame depends on; a new target is built only when this changes.
+    /// </summary>
+    private Key KeyFor(string? dashboard, bool hideControls)
+    {
+        if (dashboard is null)
+        {
+            return new Key(null, false, null, null, null);
+        }
+
+        if (!NavigationDash.IsCode(dashboard))
+        {
+            return new Key(dashboard, hideControls, _settings.SimHubWebPort, null, null);
+        }
+
+        // SimHub's dashboard controls do not apply to the map page, so the setting is left out of its key.
+        if (_navigation.Ready)
+        {
+            return new Key(NavigationDash.Code, false, _navigation.Port, null, null);
+        }
+
+        return _navigation.Installed
+            ? new Key(NavigationDash.Code, false, null, NavigationDash.DisplayName + " is not ready.", _navigation.Reason ?? "Waiting for it to load the map.")
+            : new Key(NavigationDash.Code, false, null, NavigationDash.DisplayName + " is not installed in SimHub.", "Install and enable it, or pick another dashboard for this state.");
+    }
+
+    private DeviceTarget TargetFor(Key key)
+    {
+        if (key.Dashboard is null)
+        {
+            return new DeviceTarget(null, null);
+        }
+
+        if (key.Notice is not null)
+        {
+            return new DeviceTarget(key.Dashboard, null, null, key.Notice, key.NoticeDetail);
+        }
+
+        var path = NavigationDash.IsCode(key.Dashboard)
+            ? NavigationDash.Path
+            : DashUrl.Build(key.Dashboard, key.HideControls, ++_cacheBuster);
+        return new DeviceTarget(key.Dashboard, path, key.Port);
+    }
+
     private void Raise(IReadOnlyCollection<string> changed)
     {
         if (changed.Count > 0)
@@ -184,5 +262,7 @@ public sealed class DeviceRouter
         }
     }
 
-    private sealed record Entry(string? Dashboard, bool HideControls, DeviceTarget Target);
+    private sealed record Key(string? Dashboard, bool HideControls, int? Port, string? Notice, string? NoticeDetail);
+
+    private sealed record Entry(Key Key, DeviceTarget Target);
 }

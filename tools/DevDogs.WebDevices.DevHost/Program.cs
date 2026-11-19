@@ -1,9 +1,11 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using DevDogs.WebDevices.Core.Config;
 using DevDogs.WebDevices.Core.Hosting;
+using DevDogs.WebDevices.Core.Routing;
 using DevDogs.WebDevices.Core.State;
 
 namespace DevDogs.WebDevices.DevHost;
@@ -27,6 +29,9 @@ public static class Program
           menu <game>      game running, not driving
           drive <game>     driving
           pause <game>     game paused (counts as in menus)
+          nav ready [port] DevDogs Navigation Dash ready (default port 8893)
+          nav wait [why]   Navigation Dash installed but not ready
+          nav none         Navigation Dash not installed
           reload           re-read the settings file
           quit             stop
         """;
@@ -207,6 +212,9 @@ public static class Program
             case "pause":
                 SetSignals(new GameSignals(game, true, true, false, Paused: true));
                 break;
+            case "nav":
+                SetNavigation(host, game);
+                break;
             case "reload":
                 host.Configure(LoadSettings(settingsPath, port));
                 Log("Settings reloaded.");
@@ -219,6 +227,28 @@ public static class Program
                 Console.WriteLine(Usage);
                 break;
         }
+    }
+
+    private static void SetNavigation(RouterHost host, string? args)
+    {
+        var parts = (args ?? "").Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+        var detail = parts.Length > 1 ? parts[1] : null;
+        NavigationDashStatus? status = parts.Length == 0 ? null : parts[0].ToLowerInvariant() switch
+        {
+            "ready" => NavigationDashStatus.From($"http://localhost:{detail ?? NavigationDash.DefaultPort.ToString(CultureInfo.InvariantCulture)}/", true, "Ready"),
+            "wait" => NavigationDashStatus.From($"http://localhost:{NavigationDash.DefaultPort}/", false, detail ?? "Waiting for map data"),
+            "none" => NavigationDashStatus.NotInstalled,
+            _ => null,
+        };
+
+        if (status is null)
+        {
+            Log("Usage: nav ready [port] | nav wait [why] | nav none");
+            return;
+        }
+
+        host.Router.UpdateNavigation(status);
+        Log($"Navigation Dash: {status}");
     }
 
     private static void SetSignals(GameSignals signals)
