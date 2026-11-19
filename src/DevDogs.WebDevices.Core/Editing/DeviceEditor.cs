@@ -111,8 +111,8 @@ public sealed class DeviceEditor : ObservableObject
     {
         Name = Name,
         HideControls = HideControls,
-        SystemIdleDashboard = SettingsEditor.Blank(SystemIdleDashboard),
-        Default = new GameDashboards { GameIdle = SettingsEditor.Blank(DefaultGameIdle), Driving = SettingsEditor.Blank(DefaultDriving) },
+        SystemIdleDashboard = SettingsEditor.Dashboard(SystemIdleDashboard),
+        Default = new GameDashboards { GameIdle = SettingsEditor.Dashboard(DefaultGameIdle), Driving = SettingsEditor.Dashboard(DefaultDriving) },
         Games = Games.Select(g => g.ToMapping()).ToList(),
     };
 

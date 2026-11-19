@@ -174,6 +174,35 @@ public sealed class WebDevicesServerTests : IDisposable
     }
 
     [Fact]
+    public async Task Events_push_navigation_dash_notices_and_port_changes()
+    {
+        var settings = Settings();
+        settings.Devices[0].SystemIdleDashboard = NavigationDash.Code;
+        _router.ApplySettings(settings);
+        using var cts = Cts();
+        using var stream = await _client.GetStreamAsync("/ipad/events", cts.Token);
+        using var reader = new StreamReader(stream);
+
+        var missing = await NextEventAsync(reader, cts.Token);
+        missing.Data["notice"]!.Value<string>().Should().Be("DevDogs Navigation Dash is not installed in SimHub.");
+
+        _router.UpdateNavigation(new NavigationDashStatus(true, false, 8893, "Waiting for map data"));
+        var loading = await NextEventAsync(reader, cts.Token);
+        loading.Data["notice"]!.Value<string>().Should().Be("DevDogs Navigation Dash is not ready.");
+        loading.Data["noticeDetail"]!.Value<string>().Should().Be("Waiting for map data");
+
+        _router.UpdateNavigation(new NavigationDashStatus(true, true, 8893, null));
+        var ready = await NextEventAsync(reader, cts.Token);
+        ready.Data["path"]!.Value<string>().Should().Be("/");
+        ready.Data["port"]!.Value<int>().Should().Be(8893);
+
+        _router.UpdateNavigation(new NavigationDashStatus(true, true, 9100, null));
+        var moved = await NextEventAsync(reader, cts.Token);
+        moved.Data["path"]!.Value<string>().Should().Be("/");
+        moved.Data["port"]!.Value<int>().Should().Be(9100);
+    }
+
+    [Fact]
     public async Task Events_send_heartbeats_while_nothing_changes()
     {
         using var cts = Cts();

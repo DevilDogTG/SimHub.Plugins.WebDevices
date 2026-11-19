@@ -64,7 +64,7 @@ public sealed class GameMappingEditor : ObservableObject
     public GameMapping ToMapping() => new()
     {
         GameName = GameCode,
-        GameIdle = SettingsEditor.Blank(GameIdle),
-        Driving = SettingsEditor.Blank(Driving),
+        GameIdle = SettingsEditor.Dashboard(GameIdle),
+        Driving = SettingsEditor.Dashboard(Driving),
     };
 }

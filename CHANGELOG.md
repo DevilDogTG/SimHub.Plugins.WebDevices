@@ -6,6 +6,16 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- **DevDogs Navigation Dash** as a choice in every dashboard box, listed when the DevDogs Navigation Dash plugin is
+  installed: the device shows its map from that plugin's own port. Chosen for both *In menus* and *Driving*, the map
+  is not reloaded when the game pauses. Until Navigation Dash is ready (or while it is not installed) the device
+  shows a short message with the reason. The map needs a WebGL 2 browser (Chrome or Edge on Android 11+).
+- Dev host commands `nav ready [port]`, `nav wait [reason]` and `nav none`.
+
+### Fixed
+- Changing **SimHub web port** now reloads open devices from the new port straight away.
+
 ### Changed
 - The plugin class is now `DDWebDevicesPlugin`, named like the other DevDogs plugins. SimHub sees it as a
   new plugin: after updating, enable **DevDogs Web Devices** again when asked and put **Web Devices** back

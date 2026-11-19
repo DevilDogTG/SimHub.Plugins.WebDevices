@@ -16,7 +16,9 @@ public static class DevicePayload
     /// <param name="device">The device name.</param>
     /// <param name="state">The current routing state.</param>
     /// <param name="target">What the device should show.</param>
-    /// <param name="simHubWebPort">The port of SimHub's web server, which the page loads <c>path</c> from.</param>
+    /// <param name="simHubWebPort">
+    /// The port of SimHub's web server: the page's icon comes from it, and so does <c>path</c> when the target names no port.
+    /// </param>
     /// <returns>The JSON text.</returns>
     public static string ToJson(string device, RouterState state, DeviceTarget target, int simHubWebPort) =>
         new JObject
@@ -26,6 +28,9 @@ public static class DevicePayload
             ["game"] = state.GameName,
             ["dashboard"] = target.Dashboard,
             ["path"] = target.Path,
+            ["port"] = target.Path is null ? null : target.Port ?? simHubWebPort,
             ["simHubPort"] = simHubWebPort,
+            ["notice"] = target.Notice,
+            ["noticeDetail"] = target.NoticeDetail,
         }.ToString(Formatting.None);
 }

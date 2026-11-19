@@ -47,7 +47,7 @@
       var msg = document.getElementById('msg');
       var status = document.getElementById('status');
       var device = decodeURIComponent(location.pathname.split('/')[1] || '');
-      var currentPath = null;
+      var currentUrl = null;
       var source = null;
       var pollTimer = null;
       var noticeTimer = null;
@@ -73,7 +73,7 @@
       }
 
       function hideFrame() {
-        currentPath = null;
+        currentUrl = null;
         frame.style.display = 'none';
         frame.src = 'about:blank';
       }
@@ -128,16 +128,24 @@
         setHomeScreenIcon(p.simHubPort);
         if (!p.path) {
           hideFrame();
-          message('No dashboard is set for this state.',
-            p.device + ' · ' + p.state + (p.game ? ' · ' + p.game : ''));
+          if (p.notice) {
+            // The chosen page cannot be shown yet (Navigation Dash missing or loading); it appears once it can.
+            message(p.notice, p.noticeDetail);
+          } else {
+            message('No dashboard is set for this state.',
+              p.device + ' · ' + p.state + (p.game ? ' · ' + p.game : ''));
+          }
           return;
         }
         msg.style.display = 'none';
         frame.style.display = 'block';
         fit();
-        if (p.path !== currentPath) {
-          currentPath = p.path;
-          frame.src = location.protocol + '//' + location.hostname + ':' + p.simHubPort + p.path;
+        // The page's own host, so it works whatever address the device used; the port is per target
+        // (SimHub's web server, or Navigation Dash's). An unchanged address keeps the frame as it is.
+        var url = location.protocol + '//' + location.hostname + ':' + (p.port || p.simHubPort) + p.path;
+        if (url !== currentUrl) {
+          currentUrl = url;
+          frame.src = url;
         }
       }
 

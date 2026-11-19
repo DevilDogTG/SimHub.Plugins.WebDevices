@@ -46,8 +46,15 @@ public class SettingsEditorTests
         },
     };
 
-    private SettingsEditor Create(RouterSettings? settings = null, SimHubPorts? simHubPorts = null) =>
-        new(settings ?? Saved(), Dashboards, Games, () => _currentGame, () => "192.168.10.102", _saved.Add, simHubPorts);
+    private SettingsEditor Create(RouterSettings? settings = null, SimHubPorts? simHubPorts = null, bool navigationDash = false) =>
+        new(settings ?? Saved(), Dashboards, Games, () => _currentGame, () => "192.168.10.102", _saved.Add, simHubPorts, navigationDash);
+
+    private static RouterSettings WithNavigationDash()
+    {
+        var settings = Saved();
+        settings.Devices[0].Games[0].Driving = NavigationDash.Code;
+        return settings;
+    }
 
     [Fact]
     public void Loads_devices_general_settings_and_friendly_game_names()
@@ -459,5 +466,60 @@ public class SettingsEditorTests
 
         editor.IsDevicesDirty.Should().BeFalse();
         editor.IsGeneralDirty.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Navigation_dash_leads_the_pickers_only_when_installed()
+    {
+        Create().Dashboards.Should().Equal(Dashboards);
+        Create(navigationDash: true).Dashboards.Should().Equal("DevDogs Navigation Dash", "Clock", "MYTEC C127", "Truck");
+    }
+
+    [Fact]
+    public void Navigation_dash_shows_by_name_and_saves_as_its_code()
+    {
+        var editor = Create(WithNavigationDash(), navigationDash: true);
+
+        editor.Devices[0].Games[0].Driving.Should().Be("DevDogs Navigation Dash");
+        editor.IsDevicesDirty.Should().BeFalse();
+        editor.ToSettings().Devices[0].Games[0].Driving.Should().Be(NavigationDash.Code);
+
+        editor.Devices[0].DefaultGameIdle = "DevDogs Navigation Dash";
+        editor.SaveDevicesCommand.Execute(null);
+        _saved.Should().ContainSingle().Which.Devices[0].Default.GameIdle.Should().Be(NavigationDash.Code);
+    }
+
+    [Fact]
+    public void Navigation_dash_is_not_reported_as_a_missing_dashboard()
+    {
+        Create(WithNavigationDash(), navigationDash: true).Warnings.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Using_navigation_dash_without_it_installed_is_a_warning_that_still_allows_saving()
+    {
+        var editor = Create(WithNavigationDash());
+
+        editor.Warnings.Should().ContainSingle().Which.Should().Contain("ipad").And.Contain("DevDogs Navigation Dash is not installed");
+        editor.Devices[1].Name = "s8-left";
+        editor.SaveDevicesCommand.CanExecute(null).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Status_refresh_names_navigation_dash_and_shows_its_notice()
+    {
+        var editor = Create(WithNavigationDash(), navigationDash: true);
+
+        editor.RefreshStatus(
+            new RouterState(GameState.Driving, "ETS2"),
+            new ServerStatus(true, 8890, "ok"),
+            [],
+            name => name == "ipad"
+                ? new DeviceTarget(NavigationDash.Code, "/", 8893)
+                : new DeviceTarget(NavigationDash.Code, null, null, "DevDogs Navigation Dash is not ready.", "Waiting for map data"),
+            DateTime.UtcNow);
+
+        editor.Devices[0].ShowingText.Should().Be("Showing DevDogs Navigation Dash");
+        editor.Devices[1].ShowingText.Should().Be("DevDogs Navigation Dash is not ready.");
     }
 }

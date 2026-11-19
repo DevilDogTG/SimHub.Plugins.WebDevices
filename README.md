@@ -12,6 +12,9 @@ automatically, by game and by what you are doing in it. Each device opens one fi
   SimHub do not disconnect anything.
 - **Works on old devices.** Tested design targets are an iPad mini 2 (iOS 12, Safari 12) and a Galaxy S8;
   no app to install, just a browser.
+- **The DevDogs navigation map too.** With the DevDogs Navigation Dash plugin
+  installed, pick **DevDogs Navigation Dash** for any state, such as ETS2 *Driving*, and the same device URL shows
+  its map.
 - **Managed inside SimHub.** A "Web Devices" tab lists devices with live connection status and edits every
   mapping; export and import the whole configuration as JSON.
 - **No network setup.** Uses SimHub's existing firewall rule; no admin rights, URL reservations or certificates.
@@ -42,6 +45,8 @@ Updating from 1.1.x: SimHub asks to enable the plugin again, because its class n
    - **Any other game**: *In menus* and *Driving* for every game without its own row.
    - **Per game**: pick a game (or **Add current game**) and set its *In menus* and *Driving* dashboards.
      An empty *In menus* shows the driving dashboard.
+   - **DevDogs Navigation Dash** heads the list when that plugin is installed: see
+     [Navigation Dash on a device](#navigation-dash-on-a-device).
 4. Click **Save** on the tab. Changes apply immediately; no restart is needed. Each tab (**Devices**,
    **General**) has its own **Save** and **Revert**, so unsaved changes on one tab are kept when you save the other.
 5. On the device, open the URL shown under **Open on device** (use **Copy**). On iOS, *Share → Add to Home
@@ -49,6 +54,19 @@ Updating from 1.1.x: SimHub asks to enable the plugin again, because its class n
 
 Set the device's own screen timeout to "never" (or use a kiosk browser): over plain HTTP, browsers cannot
 keep the screen awake by themselves.
+
+### Navigation Dash on a device
+Pick **DevDogs Navigation Dash** in any dashboard box (it is listed only when the DevDogs Navigation Dash plugin is
+installed in SimHub). The device then shows Navigation Dash's map, from that plugin's own port (8893 by default,
+read from SimHub), instead of a SimHub dashboard.
+- **Pick it for both *In menus* and *Driving*** of a truck game to keep the map, and whatever you did on it, when
+  the game pauses or you open its menu. A device whose choice does not change is never reloaded.
+- **Until the map can be shown** (Navigation Dash still loading map data, or not installed) the device shows a short
+  message saying why, and the map appears by itself when it is ready.
+- **The map needs WebGL 2:** Chrome or Edge on Android 11 or later. Older devices, such as an iPad mini 2, show
+  Navigation Dash's "device not supported" page instead; keep SimHub dashboards on those.
+- Touch works on the map as usual (drag, pinch, rotate, press and hold). Keeping the screen awake is unchanged: set
+  the device's own screen timeout.
 
 ## 🔀 How switching works
 
@@ -73,6 +91,9 @@ keep the screen awake by themselves.
 | Page loads but stays black | SimHub's own web server must be reachable: try `http://<simhub-pc>:8888/` on the device; check **SimHub web port**. |
 | Black screen with "Reconnecting…" or "Waiting for SimHub…" in the corner | The device lost the connection (Wi-Fi drop, SimHub closed or restarting). It recovers by itself. The screen goes black after 3 s offline so devices left on do not burn in. |
 | Game not detected | SimHub must switch to the game (its current game shows in **Status**). Process detection for custom games does not work for programs running as administrator. |
+| "DevDogs Navigation Dash is not installed in SimHub" | Install and enable the DevDogs Navigation Dash plugin, or pick another dashboard for that state. |
+| "DevDogs Navigation Dash is not ready" | Navigation Dash is loading its map data; the smaller line gives its reason. The map appears by itself. |
+| Map shows "device not supported" | The device's browser has no WebGL 2 (see [Navigation Dash on a device](#navigation-dash-on-a-device)); use a SimHub dashboard on it. |
 | Menus show the driving dashboard | Some games never report "in menus". ETS2/ATS report their Esc menu as paused, which counts as in menus; sitting in the truck before driving counts as driving. |
 
 Every switch, connection and raw game flag is logged with a `[WebDevices]` prefix in SimHub's log
@@ -84,7 +105,8 @@ Every switch, connection and raw game flag is logged with a `[WebDevices]` prefi
   Server-Sent Events, the device page, and the settings-tab view models.
 - **`DevDogs.WebDevices`** (.NET Framework 4.8, WPF): the SimHub plugin. Feeds SimHub's game data into a
   shared host that survives SimHub re-creating plugins on every game switch, and provides the settings tab.
-- The device page frames SimHub's own dashboard page (`:8888/Dash`) full screen and swaps it when told to.
+- The device page frames SimHub's own dashboard page (`:8888/Dash`), or DevDogs Navigation Dash's page from its own
+  port, full screen and swaps it when told to.
 
 Design decisions are recorded in [`docs/adr/`](docs/adr/).
 
@@ -108,7 +130,9 @@ pwsh ./build/Install-DevBuild.ps1
 
 ### Try the device page without a game
 The dev host serves device pages from the real server with game states typed in (`idle`, `menu <game>`,
-`drive <game>`, `pause <game>`, `reload`, `quit`). SimHub must be running for the dashboards themselves.
+`drive <game>`, `pause <game>`, `reload`, `quit`) and Navigation Dash's status set by hand (`nav ready [port]`,
+`nav wait [reason]`, `nav none`). SimHub must be running for the dashboards themselves. Navigation Dash's own dev
+host also uses port 8891: run this one on another port next to it.
 ```bash
 dotnet run --project tools/DevDogs.WebDevices.DevHost -- --port 8891
 ```
