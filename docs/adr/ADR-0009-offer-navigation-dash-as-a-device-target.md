@@ -1,7 +1,7 @@
 # ADR-0009: Offer DevDogs Navigation Dash as a device target
 
 **Date:** 2026-11-19
-**Status:** proposed
+**Status:** accepted (2026-11-27, after the real SimHub check)
 **Deciders:** DevilDogTG (project owner)
 
 ## Context
