@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-27
+
+Upgrading from 1.1.x: SimHub asks once to enable **DevDogs Web Devices** again and **Web Devices** has to be put
+back in the left menu; devices and settings are carried over.
+
 ### Added
 - **DevDogs Navigation Dash** as a choice in every dashboard box, listed when the DevDogs Navigation Dash plugin is
   installed: the device shows its map from that plugin's own port. Chosen for both *In menus* and *Driving*, the map
@@ -15,9 +20,6 @@ All notable changes to this project are documented here. The format follows
 - A dashboard picker like SimHub's own in every dashboard box: preview and title, a search box (name, category or
   author) and a list grouped by your Dash Studio categories, with DevDogs Navigation Dash in its own *DevDogs Plugins*
   group at the top. Empty boxes say what the device shows instead.
-
-### Fixed
-- Changing **SimHub web port** now reloads open devices from the new port straight away.
 
 ### Changed
 - Dashboards show by their SimHub title rather than their folder name (*ATS-DASH-ROUTER-ADV* for `ATS-DASH`); the
@@ -31,6 +33,9 @@ All notable changes to this project are documented here. The format follows
 - The plugin's author is now DevilDogTG; the company stays DevDogs.
 - The repository is now `DevilDogTG/SimHub.Plugins.WebDevices`, named like the other DevDogs plugin repositories.
   Old GitHub links and clones redirect.
+
+### Fixed
+- Changing **SimHub web port** now reloads open devices from the new port straight away.
 
 ## [1.1.0] - 2026-11-15
 
@@ -57,5 +62,6 @@ First public release (1.0.x were local test builds).
 - Developer tools: dev install script, release package script and a dev host for testing the device page
   without a game.
 
-[Unreleased]: https://github.com/DevilDogTG/SimHub.Plugins.WebDevices/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/DevilDogTG/SimHub.Plugins.WebDevices/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/DevilDogTG/SimHub.Plugins.WebDevices/releases/tag/v1.2.0
 [1.1.0]: https://github.com/DevilDogTG/SimHub.Plugins.WebDevices/releases/tag/v1.1.0
