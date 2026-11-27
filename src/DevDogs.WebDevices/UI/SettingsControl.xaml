@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:styles="clr-namespace:SimHub.Plugins.Styles;assembly=SimHub.Plugins"
+             xmlns:ui="clr-namespace:DevDogs.WebDevices.UI"
              x:Name="Root">
   <UserControl.Resources>
     <BooleanToVisibilityConverter x:Key="Visible" />
@@ -22,10 +23,10 @@
       <Setter Property="HorizontalContentAlignment" Value="Left" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
-    <Style x:Key="Dashboard" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
-      <Setter Property="IsEditable" Value="True" />
+    <!-- The empty text of each field says what the device shows instead (Core's DashboardResolver). -->
+    <Style x:Key="Dashboard" TargetType="ui:DashboardPicker">
       <Setter Property="Margin" Value="0,3" />
-      <Setter Property="ItemsSource" Value="{Binding DataContext.Dashboards, ElementName=Root}" />
+      <Setter Property="Choices" Value="{Binding DataContext.Choices, ElementName=Root}" />
     </Style>
     <Style x:Key="Errors" TargetType="ItemsControl">
       <Setter Property="ItemTemplate">
@@ -139,7 +140,8 @@
                 </Grid>
 
                 <styles:SHSubSection Title="When no game is running" Margin="0,12,0,0">
-                  <ComboBox Style="{StaticResource Dashboard}" Text="{Binding SystemIdleDashboard, UpdateSourceTrigger=PropertyChanged}" />
+                  <ui:DashboardPicker Style="{StaticResource Dashboard}" SelectedCode="{Binding SystemIdleDashboard}"
+                                      EmptyText="None: the device shows a message" />
                 </styles:SHSubSection>
 
                 <styles:SHSubSection Title="Any other game" Margin="0,8,0,0">
@@ -150,9 +152,11 @@
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions><RowDefinition /><RowDefinition /></Grid.RowDefinitions>
                     <TextBlock Style="{StaticResource Label}" Text="In menus" />
-                    <ComboBox Grid.Column="1" Style="{StaticResource Dashboard}" Text="{Binding DefaultGameIdle, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:DashboardPicker Grid.Column="1" Style="{StaticResource Dashboard}" SelectedCode="{Binding DefaultGameIdle}"
+                                        EmptyText="As driving" />
                     <TextBlock Grid.Row="1" Style="{StaticResource Label}" Text="Driving" />
-                    <ComboBox Grid.Row="1" Grid.Column="1" Style="{StaticResource Dashboard}" Text="{Binding DefaultDriving, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:DashboardPicker Grid.Row="1" Grid.Column="1" Style="{StaticResource Dashboard}" SelectedCode="{Binding DefaultDriving}"
+                                        EmptyText="As when no game is running" />
                   </Grid>
                 </styles:SHSubSection>
 
@@ -166,7 +170,7 @@
                         <ColumnDefinition Width="80" />
                       </Grid.ColumnDefinitions>
                       <TextBlock Grid.Column="0" Text="Game" Opacity="0.7" />
-                      <TextBlock Grid.Column="1" Text="In menus (empty: as driving)" Opacity="0.7" Margin="4,0" />
+                      <TextBlock Grid.Column="1" Text="In menus" Opacity="0.7" Margin="4,0" />
                       <TextBlock Grid.Column="2" Text="Driving" Opacity="0.7" Margin="4,0" />
                     </Grid>
                     <ItemsControl ItemsSource="{Binding Games}">
@@ -180,8 +184,10 @@
                               <ColumnDefinition Width="80" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="{Binding DisplayName}" ToolTip="{Binding GameCode}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                            <ComboBox Grid.Column="1" Style="{StaticResource Dashboard}" Margin="4,0" Text="{Binding GameIdle, UpdateSourceTrigger=PropertyChanged}" />
-                            <ComboBox Grid.Column="2" Style="{StaticResource Dashboard}" Margin="4,0" Text="{Binding Driving, UpdateSourceTrigger=PropertyChanged}" />
+                            <ui:DashboardPicker Grid.Column="1" Style="{StaticResource Dashboard}" Margin="4,0" SelectedCode="{Binding GameIdle}"
+                                                EmptyText="As any other game" />
+                            <ui:DashboardPicker Grid.Column="2" Style="{StaticResource Dashboard}" Margin="4,0" SelectedCode="{Binding Driving}"
+                                                EmptyText="As any other game" />
                             <styles:SHButtonSecondary Grid.Column="3" Content="Remove" Margin="4,0,0,0"
                                                       Command="{Binding DataContext.RemoveGameCommand, ElementName=Root}" CommandParameter="{Binding}" />
                           </Grid>

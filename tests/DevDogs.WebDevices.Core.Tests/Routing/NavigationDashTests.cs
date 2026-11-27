@@ -24,24 +24,6 @@ public class NavigationDashTests
     }
 
     [Fact]
-    public void Pickers_show_the_name_and_store_the_code()
-    {
-        NavigationDash.ToDisplay(NavigationDash.Code).Should().Be("DevDogs Navigation Dash");
-        NavigationDash.FromDisplay("DevDogs Navigation Dash").Should().Be(NavigationDash.Code);
-        NavigationDash.FromDisplay("devdogs navigation dash").Should().Be(NavigationDash.Code);
-        NavigationDash.FromDisplay(NavigationDash.Code).Should().Be(NavigationDash.Code);
-    }
-
-    [Theory]
-    [InlineData("Truck")]
-    [InlineData(null)]
-    public void Other_values_pass_through_unchanged(string? value)
-    {
-        NavigationDash.ToDisplay(value).Should().Be(value);
-        NavigationDash.FromDisplay(value).Should().Be(value);
-    }
-
-    [Fact]
     public void Missing_properties_mean_not_installed()
     {
         NavigationDashStatus.From(null, null, null).Should().Be(NavigationDashStatus.NotInstalled);

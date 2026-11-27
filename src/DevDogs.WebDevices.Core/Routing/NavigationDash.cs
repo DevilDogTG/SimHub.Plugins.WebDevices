@@ -39,19 +39,4 @@ public static class NavigationDash
     /// <returns><see langword="true"/> for <see cref="Code"/>, ignoring case and surrounding spaces.</returns>
     public static bool IsCode(string? dashboard) =>
         string.Equals(dashboard?.Trim(), Code, StringComparison.OrdinalIgnoreCase);
-
-    /// <summary>
-    /// Returns the text a picker shows for a stored dashboard value.
-    /// </summary>
-    /// <param name="stored">The stored value.</param>
-    /// <returns><see cref="DisplayName"/> for <see cref="Code"/>; any other value unchanged.</returns>
-    public static string? ToDisplay(string? stored) => IsCode(stored) ? DisplayName : stored;
-
-    /// <summary>
-    /// Returns the value to store for the text in a picker.
-    /// </summary>
-    /// <param name="shown">The picker text.</param>
-    /// <returns><see cref="Code"/> for <see cref="DisplayName"/> or the code itself (ignoring case); any other value unchanged.</returns>
-    public static string? FromDisplay(string? shown) =>
-        IsCode(shown) || string.Equals(shown?.Trim(), DisplayName, StringComparison.OrdinalIgnoreCase) ? Code : shown;
 }

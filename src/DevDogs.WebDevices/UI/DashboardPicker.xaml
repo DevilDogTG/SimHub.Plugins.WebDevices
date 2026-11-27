@@ -1,0 +1,181 @@
+<UserControl x:Class="DevDogs.WebDevices.UI.DashboardPicker"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="clr-namespace:DevDogs.WebDevices.UI"
+             x:Name="Self">
+  <!--
+    A dashboard field: the closed field shows the chosen dashboard's preview and title; the dropdown has a search
+    box and lists dashboards grouped by category. All choosing logic is in Core's DashboardChoices. Colours come
+    from SimHub's theme (MahApps keys SimHub's own controls use) or are neutral overlays that suit dark and light.
+  -->
+  <UserControl.Resources>
+    <ui:PreviewImageConverter x:Key="Preview" />
+    <SolidColorBrush x:Key="PreviewBackground" Color="#26808080" />
+    <SolidColorBrush x:Key="NoteBrush" Color="#FFC857" />
+
+    <!-- Preview picture, or a map pin for DevDogs Navigation Dash; sized by its container. -->
+    <DataTemplate x:Key="PreviewTemplate">
+      <Border Background="{StaticResource PreviewBackground}" CornerRadius="2">
+        <Grid>
+          <Image Source="{Binding PreviewPath, Converter={StaticResource Preview}}" Stretch="Uniform" />
+          <Viewbox x:Name="Pin" Margin="4" Visibility="Collapsed">
+            <Path Fill="{DynamicResource AccentColorBrush}"
+                  Data="M12,2 C8.13,2 5,5.13 5,9 C5,14.25 12,22 12,22 C12,22 19,14.25 19,9 C19,5.13 15.87,2 12,2 Z M12,11.5 C10.62,11.5 9.5,10.38 9.5,9 C9.5,7.62 10.62,6.5 12,6.5 C13.38,6.5 14.5,7.62 14.5,9 C14.5,10.38 13.38,11.5 12,11.5 Z" />
+          </Viewbox>
+        </Grid>
+      </Border>
+      <DataTemplate.Triggers>
+        <DataTrigger Binding="{Binding IsNavigationDash}" Value="True">
+          <Setter TargetName="Pin" Property="Visibility" Value="Visible" />
+        </DataTrigger>
+      </DataTemplate.Triggers>
+    </DataTemplate>
+  </UserControl.Resources>
+
+  <Grid>
+    <ToggleButton x:Name="Toggle" Cursor="Hand" MinHeight="33" FontWeight="Normal" FontSize="{Binding FontSize, ElementName=Self}" ToolTipService.InitialShowDelay="600"
+                  IsChecked="{Binding IsOpen, ElementName=Popup, Mode=TwoWay}"
+                  ToolTip="{Binding Current.Code, ElementName=Self}">
+      <ToggleButton.Template>
+        <ControlTemplate TargetType="ToggleButton">
+          <Border x:Name="Frame" Background="#14FFFFFF" BorderBrush="{DynamicResource TextBoxBorderBrush}" BorderThickness="1"
+                  Padding="3,3,4,3" SnapsToDevicePixels="True">
+            <ContentPresenter VerticalAlignment="Center" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource AccentColorBrush}" />
+            </Trigger>
+            <Trigger Property="IsKeyboardFocused" Value="True">
+              <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource AccentColorBrush}" />
+            </Trigger>
+            <Trigger Property="IsChecked" Value="True">
+              <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource AccentColorBrush}" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </ToggleButton.Template>
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="26" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <ContentControl Width="44" Height="25" Focusable="False" IsTabStop="False"
+                        Content="{Binding Current, ElementName=Self}" ContentTemplate="{StaticResource PreviewTemplate}" />
+        <TextBlock Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
+          <TextBlock.Style>
+            <Style TargetType="TextBlock">
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding Current, ElementName=Self}" Value="{x:Null}">
+                  <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </TextBlock.Style>
+          <Run Text="{Binding Current.Title, ElementName=Self, Mode=OneWay}" />
+          <Run Foreground="{StaticResource NoteBrush}" FontSize="11"
+               Text="{Binding NoteText, ElementName=Self, Mode=OneWay}" />
+        </TextBlock>
+        <TextBlock Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center" Opacity="0.55" FontStyle="Italic"
+                   TextTrimming="CharacterEllipsis" Text="{Binding EmptyText, ElementName=Self}">
+          <TextBlock.Style>
+            <Style TargetType="TextBlock">
+              <Setter Property="Visibility" Value="Collapsed" />
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding Current, ElementName=Self}" Value="{x:Null}">
+                  <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </TextBlock.Style>
+        </TextBlock>
+        <Path Grid.Column="3" Margin="2,0,2,0" VerticalAlignment="Center" Data="M0,0 L4,4 L8,0" Opacity="0.7"
+              Stroke="{DynamicResource BlackBrush}" StrokeThickness="1.5" />
+      </Grid>
+    </ToggleButton>
+
+    <!-- Outside the toggle so a click clears without opening the list. -->
+    <Button x:Name="ClearButton" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,18,0" Width="22" Height="22"
+            Cursor="Hand" Focusable="False" ToolTip="Clear" Click="Clear_Click" Visibility="Collapsed">
+      <Button.Template>
+        <ControlTemplate TargetType="Button">
+          <Border x:Name="Back" Background="Transparent" CornerRadius="2">
+            <Path Data="M0,0 L8,8 M8,0 L0,8" Width="8" Height="8" HorizontalAlignment="Center" VerticalAlignment="Center"
+                  Stroke="{DynamicResource BlackBrush}" StrokeThickness="1.4" Opacity="0.7" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Back" Property="Background" Value="#33808080" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Button.Template>
+    </Button>
+
+    <Popup x:Name="Popup" PlacementTarget="{Binding ElementName=Toggle}" Placement="Bottom" StaysOpen="False"
+           AllowsTransparency="True" PopupAnimation="None" Opened="Popup_Opened" Closed="Popup_Closed">
+      <Border x:Name="Panel" Background="{DynamicResource WhiteBrush}" BorderBrush="{DynamicResource TextBoxBorderBrush}"
+              BorderThickness="1" Padding="6" MaxHeight="460" Margin="0,2,0,0"
+              TextElement.Foreground="{DynamicResource BlackBrush}">
+        <DockPanel>
+          <Grid DockPanel.Dock="Top" Margin="0,0,0,6">
+            <TextBox x:Name="SearchBox" Height="28" Padding="4,0" VerticalContentAlignment="Center"
+                     TextChanged="SearchBox_TextChanged" PreviewKeyDown="SearchBox_PreviewKeyDown" />
+            <TextBlock Margin="9,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False" Opacity="0.5"
+                       Text="Search name, category or author">
+              <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                  <Setter Property="Visibility" Value="Collapsed" />
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding Text, ElementName=SearchBox}" Value="">
+                      <Setter Property="Visibility" Value="Visible" />
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </TextBlock.Style>
+            </TextBlock>
+          </Grid>
+          <TextBlock x:Name="NoMatch" DockPanel.Dock="Top" Margin="4,8" Opacity="0.6" Visibility="Collapsed"
+                     Text="No dashboard matches the search." />
+          <ListBox x:Name="List" BorderThickness="0" Background="Transparent" Focusable="False"
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                   VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.IsVirtualizingWhenGrouping="True"
+                   VirtualizingPanel.ScrollUnit="Pixel"
+                   PreviewMouseLeftButtonUp="List_PreviewMouseLeftButtonUp">
+            <ListBox.GroupStyle>
+              <GroupStyle>
+                <GroupStyle.HeaderTemplate>
+                  <DataTemplate>
+                    <DockPanel Margin="2,10,4,4">
+                      <TextBlock DockPanel.Dock="Right" Opacity="0.5" FontSize="11" VerticalAlignment="Bottom"
+                                 Text="{Binding ItemCount}" />
+                      <TextBlock FontWeight="SemiBold" Opacity="0.9" Text="{Binding Name}" />
+                    </DockPanel>
+                  </DataTemplate>
+                </GroupStyle.HeaderTemplate>
+              </GroupStyle>
+            </ListBox.GroupStyle>
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <Grid Margin="0,3">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <ContentControl Width="96" Height="54" Focusable="False" IsTabStop="False"
+                                  Content="{Binding}" ContentTemplate="{StaticResource PreviewTemplate}" />
+                  <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Title}" FontSize="13" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding Detail}" FontSize="11" Opacity="0.6" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
+                  </StackPanel>
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </DockPanel>
+      </Border>
+    </Popup>
+  </Grid>
+</UserControl>

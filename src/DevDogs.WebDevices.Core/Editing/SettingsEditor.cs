@@ -24,7 +24,6 @@ public sealed class SettingsEditor : ObservableObject
     private readonly Action<RouterSettings> _save;
     private readonly SimHubPorts? _simHubPorts;
     private readonly Dictionary<string, string> _gameNames;
-    private readonly HashSet<string> _dashboardSet;
     private readonly bool _navigationDashInstalled;
     private RouterSettings _saved;
     private string _savedJson;
@@ -47,18 +46,18 @@ public sealed class SettingsEditor : ObservableObject
     /// Initializes a new instance of the <see cref="SettingsEditor"/> class.
     /// </summary>
     /// <param name="saved">The settings currently in effect.</param>
-    /// <param name="dashboards">The installed dashboard codes.</param>
+    /// <param name="dashboards">The dashboards installed in SimHub.</param>
     /// <param name="games">The games SimHub knows.</param>
     /// <param name="currentGame">Returns the code of SimHub's current game, if any.</param>
     /// <param name="hostAddress">Returns the PC address devices use to reach SimHub.</param>
     /// <param name="save">Persists and applies settings.</param>
     /// <param name="simHubPorts">SimHub's own web ports, which the device port must not use; unchecked when omitted.</param>
     /// <param name="navigationDashInstalled">
-    /// Whether DevDogs Navigation Dash is in SimHub; only then is it offered in the pickers (docs/adr/ADR-0009).
+    /// Whether DevDogs Navigation Dash is in SimHub; only then is it listed in the pickers (docs/adr/ADR-0009).
     /// </param>
     public SettingsEditor(
         RouterSettings saved,
-        IReadOnlyList<string> dashboards,
+        IReadOnlyList<DashboardInfo> dashboards,
         IReadOnlyList<GameOption> games,
         Func<string?> currentGame,
         Func<string> hostAddress,
@@ -66,14 +65,13 @@ public sealed class SettingsEditor : ObservableObject
         SimHubPorts? simHubPorts = null,
         bool navigationDashInstalled = false)
     {
-        Dashboards = navigationDashInstalled ? [NavigationDash.DisplayName, .. dashboards] : dashboards;
+        Choices = new DashboardChoices(dashboards, navigationDashInstalled);
         _navigationDashInstalled = navigationDashInstalled;
         Games = games;
         _currentGame = currentGame;
         _hostAddress = hostAddress;
         _save = save;
         _simHubPorts = simHubPorts;
-        _dashboardSet = new HashSet<string>(dashboards, StringComparer.OrdinalIgnoreCase);
         _gameNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var game in games)
         {
@@ -96,8 +94,8 @@ public sealed class SettingsEditor : ObservableObject
         Load(() => LoadAll(saved));
     }
 
-    /// <summary>Gets the installed dashboard codes, for the pickers, led by Navigation Dash's name when it is installed.</summary>
-    public IReadOnlyList<string> Dashboards { get; }
+    /// <summary>Gets what the dashboard pickers offer, and how they show a stored value.</summary>
+    public DashboardChoices Choices { get; }
 
     /// <summary>Gets the games SimHub knows, for the game picker.</summary>
     public IReadOnlyList<GameOption> Games { get; }
@@ -315,7 +313,7 @@ public sealed class SettingsEditor : ObservableObject
                 null => "Not saved yet",
                 { Dashboard: null } => "No dashboard for this state",
                 { Notice: { } notice } => notice,
-                var t => "Showing " + NavigationDash.ToDisplay(t.Dashboard),
+                var t => "Showing " + Choices.TitleOf(t.Dashboard),
             };
 
             device.SetStatus(status?.Connections > 0, statusText, showing);
@@ -328,11 +326,6 @@ public sealed class SettingsEditor : ObservableObject
     /// <param name="value">The edited text.</param>
     /// <returns>The value, or <see langword="null"/>.</returns>
     internal static string? Blank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value!.Trim();
-
-    /// <summary>Returns the value to store for a picker's text: blank as "not set", Navigation Dash's name as its code.</summary>
-    /// <param name="shown">The picker text.</param>
-    /// <returns>The value to store, or <see langword="null"/>.</returns>
-    internal static string? Dashboard(string? shown) => NavigationDash.FromDisplay(Blank(shown));
 
     private static string Ago(TimeSpan elapsed) => elapsed.TotalSeconds switch
     {
@@ -414,14 +407,14 @@ public sealed class SettingsEditor : ObservableObject
             var device = NewDevice();
             device.Name = config.Name;
             device.HideControls = config.HideControls;
-            device.SystemIdleDashboard = NavigationDash.ToDisplay(config.SystemIdleDashboard);
-            device.DefaultGameIdle = NavigationDash.ToDisplay(config.Default.GameIdle);
-            device.DefaultDriving = NavigationDash.ToDisplay(config.Default.Driving);
+            device.SystemIdleDashboard = config.SystemIdleDashboard;
+            device.DefaultGameIdle = config.Default.GameIdle;
+            device.DefaultDriving = config.Default.Driving;
             foreach (var game in config.Games)
             {
                 var row = NewGameRow(game.GameName);
-                row.GameIdle = NavigationDash.ToDisplay(game.GameIdle);
-                row.Driving = NavigationDash.ToDisplay(game.Driving);
+                row.GameIdle = game.GameIdle;
+                row.Driving = game.Driving;
                 device.Games.Add(row);
             }
 
@@ -523,15 +516,16 @@ public sealed class SettingsEditor : ObservableObject
             var used = new[] { device.SystemIdleDashboard, device.Default.GameIdle, device.Default.Driving }
                 .Concat(device.Games.SelectMany(g => new[] { g.GameIdle, g.Driving }));
             var usesNavigationDash = false;
-            foreach (var dashboard in used.Where(d => d is not null && !_dashboardSet.Contains(d)).Distinct())
+            foreach (var dashboard in used.Where(d => d is not null).Distinct())
             {
                 if (NavigationDash.IsCode(dashboard))
                 {
                     usesNavigationDash = true;
-                    continue;
                 }
-
-                warnings.Add($"Device '{device.Name}': dashboard '{dashboard}' is not installed in SimHub.");
+                else if (!Choices.IsInstalled(dashboard))
+                {
+                    warnings.Add($"Device '{device.Name}': dashboard '{dashboard}' is not installed in SimHub.");
+                }
             }
 
             if (usesNavigationDash && !_navigationDashInstalled)

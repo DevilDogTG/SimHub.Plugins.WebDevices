@@ -58,21 +58,21 @@ public sealed class DeviceEditor : ObservableObject
         set => Set(ref _hideControls, value);
     }
 
-    /// <summary>Gets or sets the dashboard shown when no game is running.</summary>
+    /// <summary>Gets or sets the dashboard shown when no game is running, as its stored code.</summary>
     public string? SystemIdleDashboard
     {
         get => _systemIdleDashboard;
         set => Set(ref _systemIdleDashboard, value);
     }
 
-    /// <summary>Gets or sets the menu dashboard for games without their own row.</summary>
+    /// <summary>Gets or sets the menu dashboard for games without their own row, as its stored code.</summary>
     public string? DefaultGameIdle
     {
         get => _defaultGameIdle;
         set => Set(ref _defaultGameIdle, value);
     }
 
-    /// <summary>Gets or sets the driving dashboard for games without their own row.</summary>
+    /// <summary>Gets or sets the driving dashboard for games without their own row, as its stored code.</summary>
     public string? DefaultDriving
     {
         get => _defaultDriving;
@@ -111,8 +111,8 @@ public sealed class DeviceEditor : ObservableObject
     {
         Name = Name,
         HideControls = HideControls,
-        SystemIdleDashboard = SettingsEditor.Dashboard(SystemIdleDashboard),
-        Default = new GameDashboards { GameIdle = SettingsEditor.Dashboard(DefaultGameIdle), Driving = SettingsEditor.Dashboard(DefaultDriving) },
+        SystemIdleDashboard = SettingsEditor.Blank(SystemIdleDashboard),
+        Default = new GameDashboards { GameIdle = SettingsEditor.Blank(DefaultGameIdle), Driving = SettingsEditor.Blank(DefaultDriving) },
         Games = Games.Select(g => g.ToMapping()).ToList(),
     };
 

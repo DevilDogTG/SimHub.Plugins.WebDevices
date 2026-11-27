@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
 using DevDogs.WebDevices.Core.Editing;
 using FluentAssertions;
 using Xunit;
@@ -69,41 +67,5 @@ public class EditingBasicsTests
         command.Execute("ETS2");
 
         received.Should().Be("ETS2");
-    }
-}
-
-public sealed class DashboardCatalogTests : IDisposable
-{
-    private readonly string _root = Path.Combine(Path.GetTempPath(), "webdevices-dash-" + Guid.NewGuid().ToString("N"));
-
-    public DashboardCatalogTests()
-    {
-        Directory.CreateDirectory(_root);
-    }
-
-    public void Dispose() => Directory.Delete(_root, recursive: true);
-
-    private void Dashboard(string folder, string? file = null)
-    {
-        var dir = Directory.CreateDirectory(Path.Combine(_root, folder));
-        File.WriteAllText(Path.Combine(dir.FullName, (file ?? folder) + ".djson"), "{}");
-    }
-
-    [Fact]
-    public void Lists_folders_that_hold_a_dashboard_of_the_same_name_sorted_ignoring_case()
-    {
-        Dashboard("MYTEC C127 - System Info");
-        Dashboard("clock");
-        Dashboard("Ressources", file: "something-else");
-        Directory.CreateDirectory(Path.Combine(_root, "_Library"));
-        File.WriteAllText(Path.Combine(_root, "loose.djson"), "{}");
-
-        DashboardCatalog.Scan(_root).Should().Equal("clock", "MYTEC C127 - System Info");
-    }
-
-    [Fact]
-    public void A_missing_folder_gives_an_empty_list()
-    {
-        DashboardCatalog.Scan(Path.Combine(_root, "nope")).Should().BeEmpty();
     }
 }

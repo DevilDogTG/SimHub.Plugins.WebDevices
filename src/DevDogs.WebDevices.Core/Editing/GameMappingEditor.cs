@@ -31,7 +31,7 @@ public sealed class GameMappingEditor : ObservableObject
     /// <summary>Gets the name shown for the game.</summary>
     public string DisplayName { get; }
 
-    /// <summary>Gets or sets the dashboard shown in the game's menus.</summary>
+    /// <summary>Gets or sets the dashboard shown in the game's menus, as its stored code.</summary>
     public string? GameIdle
     {
         get => _gameIdle;
@@ -44,7 +44,7 @@ public sealed class GameMappingEditor : ObservableObject
         }
     }
 
-    /// <summary>Gets or sets the dashboard shown while driving.</summary>
+    /// <summary>Gets or sets the dashboard shown while driving, as its stored code.</summary>
     public string? Driving
     {
         get => _driving;
@@ -64,7 +64,7 @@ public sealed class GameMappingEditor : ObservableObject
     public GameMapping ToMapping() => new()
     {
         GameName = GameCode,
-        GameIdle = SettingsEditor.Dashboard(GameIdle),
-        Driving = SettingsEditor.Dashboard(Driving),
+        GameIdle = SettingsEditor.Blank(GameIdle),
+        Driving = SettingsEditor.Blank(Driving),
     };
 }
