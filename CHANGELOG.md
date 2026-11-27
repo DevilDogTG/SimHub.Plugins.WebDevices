@@ -12,6 +12,8 @@ All notable changes to this project are documented here. The format follows
   in the left menu. Devices and settings are carried over from 1.1.x on first start; the old settings file
   is left in place.
 - The plugin's author is now DevilDogTG; the company stays DevDogs.
+- The repository is now `DevilDogTG/SimHub.Plugins.WebDevices`, named like the other DevDogs plugin repositories.
+  Old GitHub links and clones redirect.
 
 ## [1.1.0] - 2026-11-15
 
@@ -38,5 +40,5 @@ First public release (1.0.x were local test builds).
 - Developer tools: dev install script, release package script and a dev host for testing the device page
   without a game.
 
-[Unreleased]: https://github.com/DevilDogTG/SimHub.WebDevices/compare/v1.1.0...HEAD
-[1.1.0]: https://github.com/DevilDogTG/SimHub.WebDevices/releases/tag/v1.1.0
+[Unreleased]: https://github.com/DevilDogTG/SimHub.Plugins.WebDevices/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/DevilDogTG/SimHub.Plugins.WebDevices/releases/tag/v1.1.0
