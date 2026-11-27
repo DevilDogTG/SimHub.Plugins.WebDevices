@@ -56,8 +56,14 @@ public sealed class WebDevicesServer : IDisposable
     public ServerStatus Status { get; private set; } = new(false, 0, "Not started.");
 
     /// <summary>
-    /// Starts listening on all network interfaces, stopping any previous listener first. Never throws for
-    /// network errors; the returned status explains a failure.
+    /// Gets or sets a value indicating whether <see cref="Start"/> listens on 127.0.0.1 only. Off in SimHub, where
+    /// devices connect over the LAN; the tests turn it on so Windows Firewall never asks about the test host.
+    /// </summary>
+    internal bool LoopbackOnly { get; set; }
+
+    /// <summary>
+    /// Starts listening on all network interfaces (127.0.0.1 only with <see cref="LoopbackOnly"/>), stopping any
+    /// previous listener first. Never throws for network errors; the returned status explains a failure.
     /// </summary>
     /// <param name="port">The TCP port.</param>
     /// <returns>The new status.</returns>
@@ -69,7 +75,7 @@ public sealed class WebDevicesServer : IDisposable
 
             try
             {
-                _listener = Bind(port);
+                _listener = Bind(port, LoopbackOnly);
             }
             catch (SocketException ex)
             {
@@ -125,8 +131,21 @@ public sealed class WebDevicesServer : IDisposable
     /// <inheritdoc/>
     public void Dispose() => Stop();
 
-    private static TcpListener Bind(int port)
+    /// <summary>
+    /// Listens on every network, or on 127.0.0.1 only when <paramref name="loopbackOnly"/> is set.
+    /// </summary>
+    /// <param name="port">The TCP port; 0 picks a free one.</param>
+    /// <param name="loopbackOnly">Whether to listen on 127.0.0.1 only.</param>
+    /// <returns>The started listener.</returns>
+    internal static TcpListener Bind(int port, bool loopbackOnly)
     {
+        if (loopbackOnly)
+        {
+            var local = new TcpListener(IPAddress.Loopback, port);
+            local.Start();
+            return local;
+        }
+
         try
         {
             // One dual-mode socket accepts both IPv4 and IPv6 clients.

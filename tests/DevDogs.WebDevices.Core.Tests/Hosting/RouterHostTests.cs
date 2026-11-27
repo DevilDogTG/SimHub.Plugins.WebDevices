@@ -24,6 +24,9 @@ public sealed class RouterHostTests : IDisposable
     public RouterHostTests()
     {
         _host = new RouterHost(Settings(_port), cacheBusterSeed: 1000, () => DateTime.UtcNow, Log);
+
+        // 127.0.0.1 only, so Windows Firewall never asks about the test host (a new path in every worktree).
+        _host.Server.LoopbackOnly = true;
     }
 
     public void Dispose()
