@@ -16,7 +16,13 @@ public class SettingsEditorTests
 {
     private const string CustomCode = "Custom_26c4c1fa";
 
-    private static readonly IReadOnlyList<string> Dashboards = ["Clock", "MYTEC C127", "Truck"];
+    private static readonly IReadOnlyList<DashboardInfo> Dashboards =
+    [
+        Dash("Clock"),
+        Dash("MYTEC C127"),
+        new("Truck", "Truck Dash", "DevilDogTG", "Truck Simulator", null, Listed: true),
+        Dash("SimHub - Hud 1", listed: false),
+    ];
 
     private static readonly IReadOnlyList<GameOption> Games =
     [
@@ -45,6 +51,9 @@ public class SettingsEditorTests
             new DeviceConfig { Name = "s8", SystemIdleDashboard = "Clock" },
         },
     };
+
+    private static DashboardInfo Dash(string code, bool listed = true) =>
+        new(code, code, null, DashboardCatalog.Uncategorized, null, listed);
 
     private SettingsEditor Create(RouterSettings? settings = null, SimHubPorts? simHubPorts = null, bool navigationDash = false) =>
         new(settings ?? Saved(), Dashboards, Games, () => _currentGame, () => "192.168.10.102", _saved.Add, simHubPorts, navigationDash);
@@ -197,6 +206,16 @@ public class SettingsEditorTests
 
         editor.GeneralErrors.Should().BeEmpty();
         editor.SaveGeneralCommand.CanExecute(null).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Dashboards_hidden_from_simhubs_list_are_installed_so_no_warning()
+    {
+        var editor = Create();
+
+        editor.Devices[1].SystemIdleDashboard = "SimHub - Hud 1";
+
+        editor.Warnings.Should().BeEmpty();
     }
 
     [Fact]
@@ -434,7 +453,7 @@ public class SettingsEditorTests
         editor.StateText.Should().Be("Driving · TestTaskManager");
         editor.Devices[0].IsConnected.Should().BeTrue();
         editor.Devices[0].StatusText.Should().Be("Connected from 192.168.10.20");
-        editor.Devices[0].ShowingText.Should().Be("Showing Truck");
+        editor.Devices[0].ShowingText.Should().Be("Showing Truck Dash");
         editor.Devices[1].IsConnected.Should().BeFalse();
         editor.Devices[1].StatusText.Should().Be("Last seen 5 min ago");
         editor.Devices[1].ShowingText.Should().Be("No dashboard for this state");
@@ -469,24 +488,29 @@ public class SettingsEditorTests
     }
 
     [Fact]
-    public void Navigation_dash_leads_the_pickers_only_when_installed()
+    public void Pickers_list_simhubs_dashboards_with_navigation_dash_first_only_when_installed()
     {
-        Create().Dashboards.Should().Equal(Dashboards);
-        Create(navigationDash: true).Dashboards.Should().Equal("DevDogs Navigation Dash", "Clock", "MYTEC C127", "Truck");
+        Create().Choices.Listed.Select(c => c.Code).Should().Equal("Truck", "Clock", "MYTEC C127");
+        Create(navigationDash: true).Choices.Listed.Select(c => c.Code)
+            .Should().Equal(NavigationDash.Code, "Truck", "Clock", "MYTEC C127");
     }
 
     [Fact]
-    public void Navigation_dash_shows_by_name_and_saves_as_its_code()
+    public void Dashboard_fields_hold_and_save_the_stored_code()
     {
         var editor = Create(WithNavigationDash(), navigationDash: true);
 
-        editor.Devices[0].Games[0].Driving.Should().Be("DevDogs Navigation Dash");
+        editor.Devices[0].Games[0].Driving.Should().Be(NavigationDash.Code);
         editor.IsDevicesDirty.Should().BeFalse();
-        editor.ToSettings().Devices[0].Games[0].Driving.Should().Be(NavigationDash.Code);
 
-        editor.Devices[0].DefaultGameIdle = "DevDogs Navigation Dash";
+        editor.Devices[0].DefaultGameIdle = NavigationDash.Code;
+        editor.Devices[1].SystemIdleDashboard = " ";
         editor.SaveDevicesCommand.Execute(null);
-        _saved.Should().ContainSingle().Which.Devices[0].Default.GameIdle.Should().Be(NavigationDash.Code);
+
+        var saved = _saved.Should().ContainSingle().Subject;
+        saved.Devices[0].Default.GameIdle.Should().Be(NavigationDash.Code);
+        saved.Devices[0].Games[0].Driving.Should().Be(NavigationDash.Code);
+        saved.Devices[1].SystemIdleDashboard.Should().BeNull();
     }
 
     [Fact]

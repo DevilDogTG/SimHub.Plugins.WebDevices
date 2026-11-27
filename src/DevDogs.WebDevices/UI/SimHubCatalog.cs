@@ -17,11 +17,11 @@ namespace DevDogs.WebDevices.UI;
 internal static class SimHubCatalog
 {
     /// <summary>
-    /// Returns the installed dashboard codes.
+    /// Returns the installed dashboards with their titles, previews and Dash Studio categories.
     /// </summary>
-    /// <returns>The codes, sorted.</returns>
-    public static IReadOnlyList<string> Dashboards() =>
-        DashboardCatalog.Scan(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DashTemplates"));
+    /// <returns>The dashboards, sorted by code.</returns>
+    public static IReadOnlyList<DashboardInfo> Dashboards() =>
+        DashboardCatalog.Scan(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DashTemplates"), DashStudioSettingsFile);
 
     /// <summary>
     /// Returns the games SimHub shows in its game list, by name. Empty if SimHub's game list cannot be read;
@@ -45,8 +45,7 @@ internal static class SimHubCatalog
     /// Returns the ports SimHub's own web server uses, read from its settings (SimHub's defaults if unreadable).
     /// </summary>
     /// <returns>The ports.</returns>
-    public static SimHubPorts WebPorts() =>
-        SimHubPorts.Read(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PluginsData", "Common", "DashStudioSettings_2.json"));
+    public static SimHubPorts WebPorts() => SimHubPorts.Read(DashStudioSettingsFile);
 
     /// <summary>
     /// Returns the IPv4 address of the network adapter that has a default gateway, which is the one other
@@ -73,6 +72,10 @@ internal static class SimHubCatalog
             return "localhost";
         }
     }
+
+    /// <summary>Gets SimHub's dashboard settings file: web ports and the categories set in Dash Studio.</summary>
+    private static string DashStudioSettingsFile =>
+        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PluginsData", "Common", "DashStudioSettings_2.json");
 
     // SimHub's game list is not a documented plugin API: kept in its own method so a missing member fails
     // here, when this method is compiled, and is caught by the caller instead of breaking the whole tab.

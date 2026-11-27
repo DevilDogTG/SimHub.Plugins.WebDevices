@@ -44,9 +44,15 @@ Updating from 1.1.x: SimHub asks to enable the plugin again, because its class n
    - **When no game is running**: shown while no game is detected.
    - **Any other game**: *In menus* and *Driving* for every game without its own row.
    - **Per game**: pick a game (or **Add current game**) and set its *In menus* and *Driving* dashboards.
-     An empty *In menus* shows the driving dashboard.
-   - **DevDogs Navigation Dash** heads the list when that plugin is installed: see
-     [Navigation Dash on a device](#navigation-dash-on-a-device).
+     An empty box uses what **Any other game** shows; its dimmed text says what the device shows instead.
+
+   Each dashboard box works like SimHub's own picker: it shows the dashboard's preview and title, and opens a list
+   with a search box (name, category or author; arrow keys and Enter work too). The list is grouped by the
+   categories you set in SimHub's Dash Studio, with *Uncategorized* last, and holds the same dashboards SimHub's web
+   page offers: overlays and dashboards made for one kind of device are left out. A device already set to one of
+   those keeps it, marked *hidden in SimHub's list*. **×** empties a box. **DevDogs Navigation Dash** has its own
+   group, *DevDogs Plugins*, at the top when that plugin is installed: see
+   [Navigation Dash on a device](#navigation-dash-on-a-device).
 4. Click **Save** on the tab. Changes apply immediately; no restart is needed. Each tab (**Devices**,
    **General**) has its own **Save** and **Revert**, so unsaved changes on one tab are kept when you save the other.
 5. On the device, open the URL shown under **Open on device** (use **Copy**). On iOS, *Share → Add to Home
@@ -91,6 +97,7 @@ read from SimHub), instead of a SimHub dashboard.
 | Page loads but stays black | SimHub's own web server must be reachable: try `http://<simhub-pc>:8888/` on the device; check **SimHub web port**. |
 | Black screen with "Reconnecting…" or "Waiting for SimHub…" in the corner | The device lost the connection (Wi-Fi drop, SimHub closed or restarting). It recovers by itself. The screen goes black after 3 s offline so devices left on do not burn in. |
 | Game not detected | SimHub must switch to the game (its current game shows in **Status**). Process detection for custom games does not work for programs running as administrator. |
+| A dashboard is missing from the list, or in the wrong group | The list is read when SimHub opens the tab: reopen it (or restart SimHub) after adding dashboards or changing categories in Dash Studio. Overlays are never listed. |
 | "DevDogs Navigation Dash is not installed in SimHub" | Install and enable the DevDogs Navigation Dash plugin, or pick another dashboard for that state. |
 | "DevDogs Navigation Dash is not ready" | Navigation Dash is loading its map data; the smaller line gives its reason. The map appears by itself. |
 | Map shows "device not supported" | The device's browser has no WebGL 2 (see [Navigation Dash on a device](#navigation-dash-on-a-device)); use a SimHub dashboard on it. |
