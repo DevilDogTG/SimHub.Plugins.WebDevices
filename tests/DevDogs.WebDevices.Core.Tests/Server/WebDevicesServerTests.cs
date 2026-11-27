@@ -30,7 +30,8 @@ public sealed class WebDevicesServerTests : IDisposable
     public WebDevicesServerTests()
     {
         _router = new DeviceRouter(Settings(), cacheBusterSeed: 1000);
-        _server = new WebDevicesServer(_router, _registry) { HeartbeatInterval = TimeSpan.FromMilliseconds(200) };
+        // 127.0.0.1 only, so Windows Firewall never asks about the test host (a new path in every worktree).
+        _server = new WebDevicesServer(_router, _registry) { HeartbeatInterval = TimeSpan.FromMilliseconds(200), LoopbackOnly = true };
         _server.Start(_port).Listening.Should().BeTrue();
         _client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })
         {
@@ -75,6 +76,39 @@ public sealed class WebDevicesServerTests : IDisposable
         var port = ((IPEndPoint)probe.LocalEndpoint).Port;
         probe.Stop();
         return port;
+    }
+
+    [Fact]
+    public void Loopback_only_listens_on_this_PC_only_so_the_firewall_never_asks()
+    {
+        var port = FreePort();
+
+        var endpoint = BoundEndpoint(port);
+
+        endpoint.Address.Should().Be(IPAddress.Loopback);
+        endpoint.Port.Should().Be(port);
+    }
+
+    [Fact]
+    public void Loopback_only_on_port_0_gets_a_free_port_on_this_PC()
+    {
+        var endpoint = BoundEndpoint(0);
+
+        endpoint.Address.Should().Be(IPAddress.Loopback);
+        endpoint.Port.Should().NotBe(0);
+    }
+
+    private static IPEndPoint BoundEndpoint(int port)
+    {
+        var listener = WebDevicesServer.Bind(port, loopbackOnly: true);
+        try
+        {
+            return (IPEndPoint)listener.LocalEndpoint;
+        }
+        finally
+        {
+            listener.Stop();
+        }
     }
 
     [Fact]
@@ -250,7 +284,7 @@ public sealed class WebDevicesServerTests : IDisposable
     [Fact]
     public void A_port_in_use_is_reported_not_thrown()
     {
-        using var other = new WebDevicesServer(_router, _registry);
+        using var other = new WebDevicesServer(_router, _registry) { LoopbackOnly = true };
 
         var status = other.Start(_port);
 
