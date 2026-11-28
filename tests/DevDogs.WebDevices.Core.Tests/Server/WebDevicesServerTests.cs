@@ -122,6 +122,23 @@ public sealed class WebDevicesServerTests : IDisposable
     }
 
     [Fact]
+    public async Task Device_page_has_tap_to_start_and_a_playable_keep_awake_video()
+    {
+        var page = await _client.GetStringAsync("/ipad/", Ct);
+
+        page.Should().Contain("id=\"tap\"").And.Contain("requestFullscreen").And.Contain("wakeLock");
+        const string prefix = "data:video/mp4;base64,";
+        var start = page.IndexOf(prefix, StringComparison.Ordinal);
+        start.Should().BePositive();
+        start += prefix.Length;
+        var video = Convert.FromBase64String(page.Substring(start, page.IndexOf('"', start) - start));
+        // An MP4 starts with its 'ftyp' box; this one must hold H.264 video (avc1) and nothing else.
+        Encoding.ASCII.GetString(video, 4, 4).Should().Be("ftyp");
+        var boxes = Encoding.ASCII.GetString(video);
+        boxes.Should().Contain("avc1").And.NotContain("mp4a");
+    }
+
+    [Fact]
     public async Task Head_returns_headers_without_a_body()
     {
         using var response = await _client.SendAsync(new HttpRequestMessage(HttpMethod.Head, "/ipad/"), Ct);

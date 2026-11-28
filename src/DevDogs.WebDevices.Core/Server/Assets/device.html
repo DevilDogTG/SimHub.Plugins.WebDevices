@@ -29,12 +29,28 @@
     /* Offline: a black screen and the corner text only, so a device left on does not burn in a frozen
        dashboard. Visibility (not display) keeps the frame loaded for when the connection comes back. */
     body.offline #dash, body.offline #msg { visibility: hidden; }
+    /* Keep-awake video: black, 2px, on screen (browsers only count a visible playing video). */
+    #awake { position: absolute; left: 0; bottom: 0; width: 2px; height: 2px; pointer-events: none; }
+    /* Tap to start: catches the one tap that full screen needs, above the dashboard. */
+    #tap { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; -webkit-tap-highlight-color: transparent; }
+    #tap span {
+      position: absolute; left: 50%; bottom: 24px; -webkit-transform: translateX(-50%); transform: translateX(-50%);
+      padding: 6px 14px; border-radius: 16px; background: rgba(0, 0, 0, 0.7); white-space: nowrap;
+      color: #999; font: 14px/1.4 -apple-system, "Segoe UI", Roboto, sans-serif;
+      -webkit-transition: opacity 1s; transition: opacity 1s;
+    }
+    /* The hint fades after a while so it does not burn in; the whole screen stays tappable. */
+    #tap.quiet span { opacity: 0; }
   </style>
 </head>
 <body>
   <iframe id="dash" scrolling="no" allowfullscreen></iframe>
   <div id="msg">Connecting to SimHub&hellip;</div>
   <div id="status"></div>
+  <!-- 16x16 black H.264, 5 s, no audio: made by tools/keep-awake-video.py. A data URI because iOS plays served
+       video only with HTTP range requests, which the device server does not do. -->
+  <video id="awake" muted loop playsinline webkit-playsinline preload="auto" src="data:video/mp4;base64,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"></video>
+  <div id="tap"><span></span></div>
   <script>
     // Plain ES5: the oldest supported browser is Safari 12 (iPad mini 2). See docs/adr/ADR-0002 and ADR-0003.
     (function () {
@@ -42,6 +58,8 @@
       var POLL_MS = 5000;
       var FIT_MS = 2000; // re-fit periodically too: a missed resize event must not leave the frame mis-sized
       var DRIFT_MS = 60000; // nudge the offline text now and then so it does not burn in either
+      var HINT_MS = 10000; // how long the "tap" hint stays visible
+      var AWAKE_REWIND_S = 3; // rewind the keep-awake video before it ends, so it never stops between loops
 
       var frame = document.getElementById('dash');
       var msg = document.getElementById('msg');
@@ -53,6 +71,12 @@
       var noticeTimer = null;
       var driftTimer = null;
       var iconSet = false;
+      var tap = document.getElementById('tap');
+      var awake = document.getElementById('awake');
+      var hintTimer = null;
+      var wakeLock = null;
+      var wakeLockPending = false;
+      var wasFullscreen = false;
 
       document.title = 'SimHub · ' + device;
 
@@ -215,6 +239,140 @@
           }
         };
       }
+
+      // Tap to start. Over plain HTTP the page is not a secure context: full screen still works but only from a
+      // tap, and Screen Wake Lock is missing (and Safari 12 has none at all), so a tiny muted looping video keeps
+      // the screen on instead. See docs/adr/ADR-0010.
+      function fullscreenElement() {
+        return document.fullscreenElement || document.webkitFullscreenElement ||
+          document.webkitCurrentFullScreenElement || null;
+      }
+
+      function canFullscreen() {
+        var root = document.documentElement;
+        var enabled = document.fullscreenEnabled !== undefined ? document.fullscreenEnabled : document.webkitFullscreenEnabled;
+        return enabled !== false && !!(root.requestFullscreen || root.webkitRequestFullscreen || root.webkitRequestFullScreen);
+      }
+
+      function inAppMode() {
+        // An iOS home-screen launch is already full screen.
+        return window.navigator.standalone === true ||
+          !!(window.matchMedia && window.matchMedia('(display-mode: fullscreen)').matches);
+      }
+
+      function showTap(text) {
+        tap.firstChild.textContent = text;
+        tap.className = '';
+        tap.style.display = 'block';
+        if (hintTimer) {
+          clearTimeout(hintTimer);
+        }
+        hintTimer = setTimeout(function () {
+          hintTimer = null;
+          tap.className = 'quiet';
+        }, HINT_MS);
+      }
+
+      function hideTap() {
+        tap.style.display = 'none';
+      }
+
+      function playAwakeVideo(fromTap) {
+        awake.muted = true;
+        var played;
+        try {
+          played = awake.play();
+        } catch (e) {
+          played = null;
+        }
+        if (played && played.then) {
+          played.then(null, function () {
+            // Muted autoplay refused (iOS Low Power Mode, data saver): a tap may start it. Refused even from a
+            // tap: give up rather than ask again and again.
+            if (!fromTap && tap.style.display !== 'block') {
+              showTap('Tap to keep the screen on');
+            }
+          });
+        }
+      }
+
+      function keepAwake(fromTap) {
+        if (document.hidden) {
+          return;
+        }
+        if (navigator.wakeLock) {
+          if (wakeLock || wakeLockPending) {
+            return;
+          }
+          wakeLockPending = true;
+          navigator.wakeLock.request('screen').then(function (lock) {
+            wakeLockPending = false;
+            wakeLock = lock;
+            lock.addEventListener('release', function () {
+              wakeLock = null; // released when the page is hidden; taken again when it is shown
+            });
+          }, function () {
+            wakeLockPending = false;
+            playAwakeVideo(fromTap); // refused, for example by battery saver
+          });
+        } else {
+          playAwakeVideo(fromTap);
+        }
+      }
+
+      function enterFullscreen() {
+        var root = document.documentElement;
+        if (fullscreenElement()) {
+          return;
+        }
+        try {
+          var entered = root.requestFullscreen ? root.requestFullscreen({ navigationUI: 'hide' }) :
+            root.webkitRequestFullscreen ? root.webkitRequestFullscreen() : root.webkitRequestFullScreen();
+          if (entered && entered.then) {
+            entered.then(null, function () {}); // refused: stay as is, no tap loop
+          }
+        } catch (e) {
+          // Not allowed here (some in-app browsers): stay as is.
+        }
+      }
+
+      function fullscreenChanged() {
+        if (fullscreenElement()) {
+          wasFullscreen = true;
+          hideTap();
+        } else if (wasFullscreen) {
+          // Left full screen (back gesture, app switch): one tap brings it back.
+          wasFullscreen = false;
+          showTap('Tap for full screen');
+        }
+        fit();
+      }
+
+      function tapped() {
+        hideTap();
+        if (canFullscreen() && !inAppMode()) {
+          enterFullscreen();
+        }
+        keepAwake(true);
+      }
+
+      tap.addEventListener('click', tapped);
+      document.addEventListener('fullscreenchange', fullscreenChanged);
+      document.addEventListener('webkitfullscreenchange', fullscreenChanged);
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) {
+          keepAwake(false);
+        }
+      });
+      awake.addEventListener('timeupdate', function () {
+        if (awake.currentTime > AWAKE_REWIND_S) {
+          awake.currentTime = 0;
+        }
+      });
+      if (canFullscreen() && !inAppMode()) {
+        showTap('Tap for full screen');
+      }
+      keepAwake(false);
 
       fit();
       setInterval(fit, FIT_MS);

@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- **Tap to start** on device pages: the first tap puts the page in full screen (where the browser allows it), and
+  the page keeps the screen on, over plain HTTP. A dim *Tap for full screen* hint shows for 10 s and comes back
+  after leaving full screen. Devices opened from an iOS home-screen icon are already full screen and show no hint.
+
 ## [1.2.0] - 2026-11-27
 
 Upgrading from 1.1.x: SimHub asks once to enable **DevDogs Web Devices** again and **Web Devices** has to be put
