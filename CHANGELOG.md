@@ -7,9 +7,10 @@ All notable changes to this project are documented here. The format follows
 ## [Unreleased]
 
 ### Added
-- **Tap to start** on device pages: the first tap puts the page in full screen (where the browser allows it), and
-  the page keeps the screen on, over plain HTTP. A dim *Tap for full screen* hint shows for 10 s and comes back
-  after leaving full screen. Devices opened from an iOS home-screen icon are already full screen and show no hint.
+- **Full-screen button** at the top right of device pages: turns full screen on and off, dims after 10 s. Not shown
+  where the browser has no full screen for pages (iPhone) or the page already is (opened from an iOS home-screen icon).
+- **Device pages keep the screen on** by themselves, over plain HTTP, with a muted black video behind the dashboard
+  (Screen Wake Lock where the browser offers it).
 
 ## [1.2.0] - 2026-11-27
 
