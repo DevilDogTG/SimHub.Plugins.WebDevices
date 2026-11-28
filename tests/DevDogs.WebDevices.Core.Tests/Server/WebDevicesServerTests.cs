@@ -122,11 +122,14 @@ public sealed class WebDevicesServerTests : IDisposable
     }
 
     [Fact]
-    public async Task Device_page_has_tap_to_start_and_a_playable_keep_awake_video()
+    public async Task Device_page_has_a_fullscreen_toggle_and_a_playable_keep_awake_video()
     {
         var page = await _client.GetStringAsync("/ipad/", Ct);
 
-        page.Should().Contain("id=\"tap\"").And.Contain("requestFullscreen").And.Contain("wakeLock");
+        page.Should().Contain("id=\"fs\"").And.Contain("requestFullscreen").And.Contain("exitFullscreen").And.Contain("wakeLock");
+        // Behind the dashboard: before the frame in the page, so the frame paints over it.
+        page.IndexOf("<video id=\"awake\"", StringComparison.Ordinal).Should().BePositive()
+            .And.BeLessThan(page.IndexOf("<iframe", StringComparison.Ordinal));
         const string prefix = "data:video/mp4;base64,";
         var start = page.IndexOf(prefix, StringComparison.Ordinal);
         start.Should().BePositive();

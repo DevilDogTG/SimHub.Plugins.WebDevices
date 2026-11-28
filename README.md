@@ -57,9 +57,8 @@ Updating from 1.1.x: SimHub asks to enable the plugin again, because its class n
    **General**) has its own **Save** and **Revert**, so unsaved changes on one tab are kept when you save the other.
 5. On the device, open the URL shown under **Open on device** (use **Copy**). On iOS, *Share → Add to Home
    Screen* gives a full-screen, SimHub-branded launcher.
-6. **Tap the screen once.** The page goes full screen (where the browser allows it) and keeps the screen on.
-   A dim *Tap for full screen* hint shows for 10 s; until that first tap, touches do not reach the dashboard.
-   After leaving full screen (back gesture, switching apps), one tap brings it back.
+6. The page keeps the device's screen on by itself. The small button at the top right turns full screen on and
+   off; it dims after 10 s but still works. (iPhones have no full screen for web pages: use *Add to Home Screen*.)
 
 If a device still turns its screen off, set its screen timeout to "never", or on Android turn on
 *Developer options → Stay awake* (screen stays on while charging).
@@ -74,7 +73,7 @@ read from SimHub), instead of a SimHub dashboard.
   message saying why, and the map appears by itself when it is ready.
 - **The map needs WebGL 2:** Chrome or Edge on Android 11 or later. Older devices, such as an iPad mini 2, show
   Navigation Dash's "device not supported" page instead; keep SimHub dashboards on those.
-- Touch works on the map as usual (drag, pinch, rotate, press and hold) after the first tap, which goes full screen.
+- Touch works on the map as usual (drag, pinch, rotate, press and hold).
 
 ## 🔀 How switching works
 
@@ -98,7 +97,8 @@ read from SimHub), instead of a SimHub dashboard.
 | "… is not configured in SimHub" | The name in the URL must match a saved device. The page picks the device up by itself once it is added and saved. |
 | Page loads but stays black | SimHub's own web server must be reachable: try `http://<simhub-pc>:8888/` on the device; check **SimHub web port**. |
 | Black screen with "Reconnecting…" or "Waiting for SimHub…" in the corner | The device lost the connection (Wi-Fi drop, SimHub closed or restarting). It recovers by itself. The screen goes black after 3 s offline so devices left on do not burn in. |
-| Screen still turns off, or does not go full screen | Tap the page once after opening it. Some browsers refuse full screen or the keep-awake video (iOS Low Power Mode, Android data saver): set the device's screen timeout to "never" or use Android's *Stay awake*. On iPhone, use *Add to Home Screen* for full screen. |
+| Screen still turns off | The page plays a hidden black video to keep the screen on; some browsers refuse it (iOS Low Power Mode, Android data saver) until the page is tapped once outside the dashboard (the full-screen button will do). Otherwise set the device's screen timeout to "never" or use Android's *Stay awake*. |
+| No full-screen button | The browser has no full screen for web pages (iPhone), or the page already is full screen (opened from an iOS home-screen icon). On iPhone, use *Add to Home Screen*. |
 | Game not detected | SimHub must switch to the game (its current game shows in **Status**). Process detection for custom games does not work for programs running as administrator. |
 | A dashboard is missing from the list, or in the wrong group | The list is read when SimHub opens the tab: reopen it (or restart SimHub) after adding dashboards or changing categories in Dash Studio. Overlays are never listed. |
 | "DevDogs Navigation Dash is not installed in SimHub" | Install and enable the DevDogs Navigation Dash plugin, or pick another dashboard for that state. |
