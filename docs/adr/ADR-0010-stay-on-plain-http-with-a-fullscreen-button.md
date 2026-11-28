@@ -1,7 +1,7 @@
 # ADR-0010: Stay on plain HTTP; a full-screen button and a keep-awake video
 
 **Date:** 2026-11-28
-**Status:** proposed (accepted once checked on a real device)
+**Status:** accepted (2026-11-28, after a Galaxy S25 stayed on past its 30 s screen timeout and the button worked)
 **Deciders:** DevilDogTG (project owner)
 
 ## Context
