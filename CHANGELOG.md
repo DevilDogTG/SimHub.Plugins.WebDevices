@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-28
+
 ### Added
 - **Full-screen button** at the top right of device pages: turns full screen on and off, dims after 10 s. Not shown
   where the browser has no full screen for pages (iPhone) or the page already is (opened from an iOS home-screen icon).
@@ -68,6 +70,7 @@ First public release (1.0.x were local test builds).
 - Developer tools: dev install script, release package script and a dev host for testing the device page
   without a game.
 
-[Unreleased]: https://github.com/DevilDogTG/SimHub.Plugins.WebDevices/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/DevilDogTG/SimHub.Plugins.WebDevices/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/DevilDogTG/SimHub.Plugins.WebDevices/releases/tag/v1.3.0
 [1.2.0]: https://github.com/DevilDogTG/SimHub.Plugins.WebDevices/releases/tag/v1.2.0
 [1.1.0]: https://github.com/DevilDogTG/SimHub.Plugins.WebDevices/releases/tag/v1.1.0
